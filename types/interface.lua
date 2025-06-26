@@ -1,0 +1,5 @@
+--- @class Rect
+--- @field x number
+--- @field y number
+--- @field w number
+--- @field h number

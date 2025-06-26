@@ -1,12 +1,17 @@
 dofile("globals.lua")
 
 local WindowManager = require "window_manager"
+local RoxEditor = require "editor.rox_editor"
 
 Handler = nil
+Editor = nil
+
+dirty = false
 
 
 function love.load()
   WindowManager:init()
+  Editor = RoxEditor:new()
 
   Handler = {
     update_size = function()
@@ -30,6 +35,14 @@ function love.update(dt)
 end
 
 function love.draw()
+  if dirty == false then
+    Editor:draw()
+    -- dirty = true
+  else
+    return
+  end
+
+  love.graphics.rectangle("fill", 10, 10, 100, 100)
 end
 
 function love.keypressed()
