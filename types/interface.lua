@@ -1,5 +1,5 @@
 --- @class Rect
 --- @field x number
 --- @field y number
---- @field w number
---- @field h number
+--- @field width number
+--- @field height number
