@@ -14,7 +14,10 @@ local DirtyFlags = make_enum({
 ---@field canvas any
 ---@field rect Rect
 ---@field dirty boolean
+---@field resizeMode string
 ---@field name string
+---@field resizable boolean
+---@field draw function
 local UiElement = {
   hasMouseFocus = false,
   isMouseOver = false,
@@ -246,20 +249,6 @@ function UiElement:drawText(text, x, y)
 
   -- 5. Restaura configurações
   love.graphics.setFont(oldFont)
-end
-
-function UiElement:setColorConfig()
-  local color
-  if not self.visible then
-    color = { 0.2, 0.2, 0.2 } -- Desabilitado
-  elseif self.hasMouseFocus and love.mouse.isDown(1) then
-    color = { 0.3, 0.3, 0.9 } -- Clicando
-  elseif self.hasMouseFocus then
-    color = { 0.5, 0.5, 0.9 } -- Hover
-  else
-    color = { 0.4, 0.4, 0.6 } -- Normal
-  end
-  return color
 end
 
 return UiElement
