@@ -13,6 +13,10 @@ local RoxEditor = {
 
 RoxEditor.__index = RoxEditor
 
+function RoxEditor:mousePressed()
+  self.ui_handler:handleMouseClick()
+end
+
 function RoxEditor:mouseMoved()
   local x, y = love.mouse.getPosition()
 
@@ -20,14 +24,13 @@ function RoxEditor:mouseMoved()
 
   -- Você pode adicionar lógica adicional aqui
   if focusedElement then
-    -- Exemplo: mudar cursor quando sobre elementos clicáveis
-    if focusedElement.isClickable then
-      love.mouse.setCursor(love.mouse.getSystemCursor("hand"))
+    local cursor_type = focusedElement:getCursorType();
+    if cursor_type ~= nil then
+      love.mouse.setCursor(love.mouse.getSystemCursor(cursor_type))
     else
       love.mouse.setCursor()
     end
   end
-
   return focusedElement
 end
 
@@ -40,14 +43,14 @@ function RoxEditor:new()
   local base_panel_width = 200
 
   -- LeftPanel
-  obj.ui_handler:addElement(require 'editor.ui_components.left_panel':new())
+  obj.ui_handler:addElement(require 'editor.ui.blocks.left_panel':new())
 
   -- CenterPanel
-  obj.ui_handler:addElement(require 'editor.ui_components.central_panel':new(base_panel_width, 0, w - 2 *
+  obj.ui_handler:addElement(require 'editor.ui.blocks.central_panel':new(base_panel_width, 0, w - 2 *
     base_panel_width, h))
 
   -- RightPanel
-  obj.ui_handler:addElement(require 'editor.ui_components.right_panel':new())
+  obj.ui_handler:addElement(require 'editor.ui.blocks.right_panel':new())
 
   return obj;
 end

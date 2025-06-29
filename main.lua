@@ -4,25 +4,22 @@ local WindowManager = require "window_manager"
 ---@type RoxEditor
 local RoxEditor = require "editor.rox_editor"
 
-Handler = nil
 ---@type RoxEditor
 Editor = nil
 
 function love.load()
-  love.graphics.setDefaultFilter("nearest", "nearest")
+  -- debug_position()
 
+
+  GlobalState = require 'global_state':new()
+
+  GlobalState:set("ui/theme", {
+    primary = "#3498db",
+    secondary = "#FFFFFF",
+  })
 
   WindowManager:init()
   Editor = RoxEditor:new()
-
-  Handler = {
-    -- update_size = function()
-    -- end,
-    -- update_focus = function(focus)
-    -- end,
-    -- update = function(dt)
-    -- end,
-  }
 end
 
 ---@param focus boolean
@@ -43,15 +40,14 @@ end
 
 -- Mouse
 function love.mousepressed()
+  Editor:mousePressed()
 end
 
 function love.mousereleased()
 end
 
 function love.mousemoved(x, y, dx, dy)
-  if Editor and Editor.mouseMoved then
-    Editor:mouseMoved()
-  end
+  Editor:mouseMoved()
 end
 
 ---@param focus boolean
@@ -63,4 +59,13 @@ function love.resize()
   WindowManager:update_size()
   Editor:resize();
   Editor:markDirty("Full")
+end
+
+function debug_position()
+  local w, h, target = GetDisplayInfo()
+  love.window.setMode(
+    w,
+    h,
+    { display = target, resizable = true }
+  )
 end

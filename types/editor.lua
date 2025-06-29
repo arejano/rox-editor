@@ -1,1 +1,3 @@
-
+---@class UiThemeData
+---@field primary string
+---@field secondary string

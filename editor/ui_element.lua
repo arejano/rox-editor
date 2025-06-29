@@ -21,6 +21,7 @@ local DirtyFlags = make_enum({
 local UiElement = {
   hasMouseFocus = false,
   isMouseOver = false,
+  isClickable = false,
   lastMouseState = false,
   resisable = false,
   resizeMode = "right",
@@ -41,6 +42,8 @@ local UiElement = {
   timeSinceLastRender = 0,
   alpha = 1,
   fixedSize = false,
+  -- Data | Ter uma tabela de dados para o elemento
+  data = nil,
 }
 UiElement.__index = UiElement
 
@@ -60,6 +63,10 @@ function UiElement:getAbsolutePosition()
   end
   local parentX, parentY = self.parent:getAbsolutePosition()
   return parentX + self.rect.x, parentY + self.rect.y
+end
+
+function UiElement:forceRender()
+  self:markDirty()
 end
 
 -- Marca este elemento e todos os pais como necessitando renderização
@@ -89,6 +96,14 @@ end
 function UiElement:draw()
   local x, y = self:getAbsolutePosition()
   love.graphics.rectangle("line", x, y, self.rect.width, self.rect.height)
+end
+
+function UiElement:getCursorType()
+  if self.isClickable then
+    return 'hand'
+  else
+    return nil
+  end
 end
 
 -- Método para atualização (lógica)
@@ -227,6 +242,14 @@ function UiElement:freeResources()
   for _, child in ipairs(self.childs) do
     child:freeResources()
   end
+end
+
+function UiElement:bindData(data)
+  self.data = data
+end
+
+function UiElement:click(self)
+  print("Click padrao do elemento")
 end
 
 function UiElement:drawText(text, x, y)

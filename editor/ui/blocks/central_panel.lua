@@ -1,15 +1,27 @@
 local UiElement = require "editor.ui_element"
 local ResizeMode = require "editor.enum_resize_mode"
 
-local CenterPanel = {}
+---@class CenterPanale
+---@field data CenterPanelData
+local CenterPanel = {
+}
+
+---@class CenterPanelData
+---@field state string
 
 function CenterPanel:new(x, y, w, h)
   local center_panel = UiElement:new(x, y, w, h)
+
+  GlobalState:watch("ui/theme", center_panel, function(self)
+    self:forceRender()
+  end)
 
   center_panel.name = "CenterPanel"
   center_panel.resizable = true
   center_panel.resizeMode = ResizeMode.HORIZONTAL_CENTER
   center_panel.minWidth = 100 -- Largura mínima
+
+  center_panel:bindData({ state = "started", })
 
   center_panel.draw = function(self)
     local color
@@ -27,8 +39,30 @@ function CenterPanel:new(x, y, w, h)
     love.graphics.setColor(color)
     love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
 
+    ---@type UiThemeData
+    local data = GlobalState:get("ui/theme")
+
     -- Debug: mostra dimensões
-    love.graphics.print("Centro: " .. self.rect.width .. "x" .. self.rect.height, 10, 10)
+    love.graphics.print(data.primary, 10, 10)
+  end
+
+  center_panel.click = function(self)
+    print("WoW dentro do centro")
+  end
+
+  center_panel.getCursorType = function(self)
+    ---@type CenterPanelData
+    local data = self.data
+
+    if data == nil then return nil end
+
+    if data.state == "started" then
+      return nil
+    end
+
+    if data.state == "clicked" and self.hasMouseFocus then
+      return 'ibeam'
+    end
   end
   return center_panel
 end

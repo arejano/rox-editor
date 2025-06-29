@@ -35,6 +35,17 @@ function UiHandler:update(dt)
   -- self:handleMouseEvents(mx, my)
 end
 
+function UiHandler:handleMouseClick()
+  local x, y = love.mouse.getPosition()
+  local focus = self:handleMouseMove(x, y)
+
+  if focus ~= nil then
+    if focus.click then
+      focus:click()
+    end
+  end
+end
+
 function UiHandler:handleMouseMove(x, y)
   local deepestChild = self:getDeepestChildAtPosition(x, y)
 

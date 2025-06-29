@@ -1,5 +1,5 @@
 local UiElement = require "editor.ui_element"
-local Button = require 'editor.ui_components.button'
+local Button = require 'editor.ui.components.button'
 
 local RightPanel = {
 
@@ -21,8 +21,8 @@ function RightPanel:new()
     love.graphics.rectangle("fill", x, y, self.rect.width, self.rect.height) -- Coordenadas locais!
   end
 
-  panel:addChild(Button:new(10, 10, panel.rect.width - 20, 40))
-  panel:addChild(Button:new(10, 260, panel.rect.width - 20, 40))
+  -- panel:addChild(Button:new(10, 10, panel.rect.width - 20, 40))
+  -- panel:addChild(Button:new(10, 260, panel.rect.width - 20, 40))
 
   return panel
 end
