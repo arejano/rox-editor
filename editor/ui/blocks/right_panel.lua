@@ -10,7 +10,7 @@ function RightPanel:new()
   local w, h = GetWindowSize();
 
   -- Left Panel
-  local panel = UiElement:new(0, 0, base_panel_width, h)
+  local panel = UiElement:new(w - base_panel_width, 0, base_panel_width, h)
   panel.name = "RightPanel"
   panel.resizable = true
   panel.resizeMode = "right";
@@ -21,8 +21,18 @@ function RightPanel:new()
     love.graphics.rectangle("fill", x, y, self.rect.width, self.rect.height) -- Coordenadas locais!
   end
 
-  -- panel:addChild(Button:new(10, 10, panel.rect.width - 20, 40))
-  -- panel:addChild(Button:new(10, 260, panel.rect.width - 20, 40))
+  panel:addChild(Button:new({
+      x = 10,
+      y = 10,
+      width = panel.rect.width - 20,
+      height = 40
+    },
+    function()
+      ---@type UiThemeData
+      local data = GlobalState:get("ui/theme")
+      data.primary = data.primary .. data.primary
+      GlobalState:set("ui/theme", data)
+    end))
 
   return panel
 end

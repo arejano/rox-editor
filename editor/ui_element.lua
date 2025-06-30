@@ -18,6 +18,8 @@ local DirtyFlags = make_enum({
 ---@field name string
 ---@field resizable boolean
 ---@field draw function
+---@field minWidth number
+---@field minHeight number
 local UiElement = {
   hasMouseFocus = false,
   isMouseOver = false,
@@ -94,6 +96,7 @@ end
 
 -- Método base para draw (deve ser sobrescrito pelas classes filhas)
 function UiElement:draw()
+  print("wowwww")
   local x, y = self:getAbsolutePosition()
   love.graphics.rectangle("line", x, y, self.rect.width, self.rect.height)
 end
@@ -137,7 +140,6 @@ end
 
 function UiElement:render()
   if not self.visible or self.alpha <= 0 then return end
-
 
   -- Recria o canvas se necessário (tamanho mudou ou não existe)
   if not self.canvas or

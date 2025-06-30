@@ -1,7 +1,6 @@
 dofile("globals.lua")
 
 local WindowManager = require "window_manager"
----@type RoxEditor
 local RoxEditor = require "editor.rox_editor"
 
 ---@type RoxEditor
@@ -9,7 +8,6 @@ Editor = nil
 
 function love.load()
   -- debug_position()
-
 
   GlobalState = require 'global_state':new()
 
@@ -39,14 +37,37 @@ function love.keypressed()
 end
 
 -- Mouse
-function love.mousepressed()
-  Editor:mousePressed()
+function love.mousepressed(x, y, button, istouch, presses)
+  -- button 1:left 2:right 3:wheel
+  --presses quantidade de cliques no botao
+  ---@type MouseClickData
+  local mouseData = {
+    x = x,
+    y = y,
+    button = button,
+    istouch = istouch,
+    presses = presses,
+    pressed = true,
+    release = false
+  }
+  Editor:mousePressed(mouseData)
 end
 
-function love.mousereleased()
+function love.mousereleased(x, y, button, istouch, presses)
+  ---@type MouseClickData
+  local mouseData = {
+    x = x,
+    y = y,
+    button = button,
+    istouch = istouch,
+    presses = presses,
+    pressed = false,
+    release = true
+  }
+  Editor:mouseReleased(mouseData)
 end
 
-function love.mousemoved(x, y, dx, dy)
+function love.mousemoved(x, y, dx, dy, istouch)
   Editor:mouseMoved()
 end
 
@@ -55,10 +76,14 @@ function love.mousefocus(focus)
   WindowManager:update_focus(focus)
 end
 
+function love.wheelmoved(x, y)
+  WindowManager:update_focus(focus)
+end
+
 function love.resize()
   WindowManager:update_size()
   Editor:resize();
-  Editor:markDirty("Full")
+  Editor.ui_handler:markDirty("Full")
 end
 
 function debug_position()

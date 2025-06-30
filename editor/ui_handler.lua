@@ -3,10 +3,13 @@ local ResizeMode = require "editor.enum_resize_mode"
 
 ---@class UiHandler
 ---@field rootElement UiElement | nil
+---@field uiOutOffSizeElement UiElement | nil
 ---@field addElement function
+---@field stopped boolean
 local UiHandler = {
   rootElement = nil,
-  mouseController = nil -- Referência ao controlador de mouse
+  uiOutOffSizeElement = nil,
+  stopped = false,
 }
 UiHandler.__index = UiHandler
 
@@ -15,38 +18,64 @@ function UiHandler:new()
   obj.elementOnMouseFocus = nil
   obj.previousMouseFocus = nil
 
-  obj.rootElement = UiElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-  obj.rootElement.name = "RootElement"
-  obj.rootElement.draw = function(obj)
+  obj.uiOutOffSizeElement = newUiOutOffSize()
 
-  end
-  obj.rootElement.canvas = nil
   return obj
+end
+
+function newUiOutOffSize()
+  local uiOutOffSizeElement = UiElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+  uiOutOffSizeElement.name = "OutOffSizeElement"
+  uiOutOffSizeElement.draw = function(_)
+    local w, h = GetWindowSize()
+    love.graphics.clear()
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", 0, 0, w, h)
+
+    local font = love.graphics.newFont(42)
+    love.graphics.setFont(font)
+
+    -- Texto que será exibido
+    local text = "ERRO"
+
+    -- Obtém as dimensões do texto
+    local textWidth = font:getWidth(text)
+    local textHeight = font:getHeight()
+
+    -- Calcula a posição centralizada
+    local x = (w - textWidth) / 2
+    local y = (h - textHeight) / 2
+
+    -- Desenha o texto
+    love.graphics.setColor(1, 0, 0) -- Vermelho
+    love.graphics.print(text, x, y)
+  end
+  return uiOutOffSizeElement
 end
 
 -- Atualiza toda a UI
 function UiHandler:update(dt)
-  -- Atualiza hierarquia de elementos
-  self.rootElement:update(dt)
-
-  -- Aqui você pode integrar com o mouseController para eventos
-  -- Exemplo:
-  -- local mx, my = self.mouseController:getPosition()
-  -- self:handleMouseEvents(mx, my)
+  -- self.rootElement:update(dt)
 end
 
-function UiHandler:handleMouseClick()
-  local x, y = love.mouse.getPosition()
-  local focus = self:handleMouseMove(x, y)
+---@param mouseData  MouseClickData
+function UiHandler:handleMouseClick(mouseData)
+  if self.stopped then return end
+
+  local focus = self:handleMouseMove(mouseData.x, mouseData.y)
 
   if focus ~= nil then
-    if focus.click then
-      focus:click()
+    if mouseData.pressed then
+      if focus.click then
+        focus:click()
+      end
+    else
     end
   end
 end
 
 function UiHandler:handleMouseMove(x, y)
+  if self.stopped then return end
   local deepestChild = self:getDeepestChildAtPosition(x, y)
 
   -- Atualiza o foco atual
@@ -94,6 +123,7 @@ function UiHandler:getDeepestChildAtPosition(x, y)
 end
 
 function UiHandler:updateFocus(newFocus)
+  if self.stopped then return end
   -- Se o foco não mudou, não faz nada
   if self.elementOnMouseFocus == newFocus then
     return
@@ -138,8 +168,16 @@ end
 function UiHandler:resize()
   local w, h = love.graphics.getDimensions()
 
+  if w < 600 or h < 400 then
+    self.stopped = true
+    return
+  else
+    self.stopped = false
+  end
+
   -- Atualiza o root element
   self.rootElement:updateRect({ x = 0, y = 0, width = w, height = h })
+  self.uiOutOffSizeElement:updateRect({ x = 0, y = 0, width = w, height = h })
 
   -- Encontra os painéis de referência
   local left_panel, center_panel, right_panel
@@ -186,9 +224,11 @@ end
 
 -- Renderiza toda a UI
 function UiHandler:render()
-  -- love.graphics.push()
-  self.rootElement:render()
-  -- love.graphics.pop()
+  if self.stopped then
+    self.uiOutOffSizeElement:render()
+  else
+    self.rootElement:render()
+  end
 end
 
 -- Adiciona um elemento na raiz

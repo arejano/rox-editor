@@ -13,8 +13,21 @@ local RoxEditor = {
 
 RoxEditor.__index = RoxEditor
 
-function RoxEditor:mousePressed()
-  self.ui_handler:handleMouseClick()
+
+function RoxEditor:new()
+  local obj = setmetatable({}, RoxEditor)
+  obj.ui_handler = require 'editor.rox_editor_ui'
+  return obj;
+end
+
+---@param mouseData  MouseClickData
+function RoxEditor:mousePressed(mouseData)
+  self.ui_handler:handleMouseClick(mouseData)
+end
+
+---@param mouseData  MouseClickData
+function RoxEditor:mouseReleased(mouseData)
+  self.ui_handler:handleMouseClick(mouseData)
 end
 
 function RoxEditor:mouseMoved()
@@ -32,32 +45,6 @@ function RoxEditor:mouseMoved()
     end
   end
   return focusedElement
-end
-
-function RoxEditor:new()
-  local obj = setmetatable({}, RoxEditor)
-
-  obj.ui_handler = UiHandler:new()
-
-  local w, h = GetWindowSize();
-  local base_panel_width = 200
-
-  -- LeftPanel
-  obj.ui_handler:addElement(require 'editor.ui.blocks.left_panel':new())
-
-  -- CenterPanel
-  obj.ui_handler:addElement(require 'editor.ui.blocks.central_panel':new(base_panel_width, 0, w - 2 *
-    base_panel_width, h))
-
-  -- RightPanel
-  obj.ui_handler:addElement(require 'editor.ui.blocks.right_panel':new())
-
-  return obj;
-end
-
----@param DirtyFlags
-function RoxEditor:markDirty(flag)
-  self.ui_handler:markDirty(flag)
 end
 
 function RoxEditor:draw()

@@ -42,7 +42,7 @@ function LeftPanel:new()
     function()
       ---@type UiThemeData
       local data = GlobalState:get("ui/theme")
-      data.primary = "rolinha"
+      data.primary = "novo_texto"
       GlobalState:set("ui/theme", data)
     end))
   -- panel:addChild(Button:new(10, 60, panel.rect.width - 20, 40))
