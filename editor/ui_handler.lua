@@ -29,7 +29,7 @@ function newUiOutOffSize()
   uiOutOffSizeElement.draw = function(_)
     local w, h = GetWindowSize()
     love.graphics.clear()
-    love.graphics.setColor(0, 0, 0)
+    -- love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, w, h)
 
     local font = love.graphics.newFont(42)
@@ -56,6 +56,11 @@ end
 -- Atualiza toda a UI
 function UiHandler:update(dt)
   -- self.rootElement:update(dt)
+
+  -- local deepestChild = self:getDeepestChildAtPosition(x, y)
+  if self.elementOnMouseFocus == nil then return end
+
+  self.elementOnMouseFocus:update(dt)
 end
 
 ---@param mouseData  MouseClickData
@@ -64,12 +69,11 @@ function UiHandler:handleMouseClick(mouseData)
 
   local focus = self:handleMouseMove(mouseData.x, mouseData.y)
 
-  if focus ~= nil then
+  if focus ~= nil and focus.click then
     if mouseData.pressed then
-      if focus.click then
-        focus:click()
-      end
+      focus:click(mouseData)
     else
+      focus:click(mouseData)
     end
   end
 end
@@ -138,6 +142,7 @@ function UiHandler:updateFocus(newFocus)
     end
   end
 
+
   -- Atribui o novo foco
   self.previousMouseFocus = self.elementOnMouseFocus
   self.elementOnMouseFocus = newFocus
@@ -151,7 +156,7 @@ function UiHandler:updateFocus(newFocus)
     end
 
     -- Propaga para cima na hierarquia (opcional)
-    self:propagateMouseOver(newFocus)
+    -- self:propagateMouseOver(newFocus)
     newFocus:markDirty()
   end
 end

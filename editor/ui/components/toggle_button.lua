@@ -7,13 +7,13 @@ function toggle:new()
   local element = UiElement:new(0, 0, 32, 32)
 
   element.draw = function(self)
-    --fundo
-
     local bgColor = self.data.state and { 0.3, 0.7, 0.3 } or { 0.7, 0.3, 0.3 }
     love.graphics.setColor(bgColor)
-    love.graphics.rectangle("fill", self.rect.x, self.rect.y, self.rect.width, self.rect.height)
+    love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
 
     --borda
+    love.graphics.setColor(love.math.colorFromBytes(224, 85, 127))
+    love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
 
     --circulo de on/off
   end

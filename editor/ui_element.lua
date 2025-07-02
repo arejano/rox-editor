@@ -20,10 +20,14 @@ local DirtyFlags = make_enum({
 ---@field draw function
 ---@field minWidth number
 ---@field minHeight number
+---@field isClickable boolean
+---@field isDragable boolean
+---@field dragging boolean
 local UiElement = {
   hasMouseFocus = false,
   isMouseOver = false,
   isClickable = false,
+  isDragable = false,
   lastMouseState = false,
   resisable = false,
   resizeMode = "right",
@@ -111,10 +115,19 @@ end
 
 -- Método para atualização (lógica)
 function UiElement:update(dt)
-  -- Atualiza todos os children
-  for _, child in ipairs(self.childs) do
-    child:update(dt)
+  if self.dirty then
+    print("UiElement:update")
+    return
   end
+  -- self:markDirty()
+  -- Atualiza todos os children
+  -- for _, child in ipairs(self.childs) do
+  -- child:update(dt)
+  -- end
+end
+
+function UiElement:teste(dt)
+  -- Atualiza todos os children
 end
 
 -- Adiciona um child a este elemento
@@ -185,7 +198,7 @@ function UiElement:startCanvas()
 
   love.graphics.setCanvas({ self.canvas, stencil = true })
   love.graphics.clear(0, 0, 0, 0, true) -- Limpa completamente com alpha 0
-  love.graphics.setBlendMode('alpha', 'premultiplied')
+  love.graphics.setBlendMode('alpha')
 end
 
 function UiElement:updateLayout()

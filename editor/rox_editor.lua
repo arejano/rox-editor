@@ -51,6 +51,10 @@ function RoxEditor:draw()
   self.ui_handler:render()
 end
 
+function RoxEditor:update(dt)
+  self.ui_handler:update(dt)
+end
+
 function RoxEditor:resize()
   self.ui_handler:resize();
 end

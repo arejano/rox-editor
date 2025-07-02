@@ -27,6 +27,7 @@ end
 
 function love.update(dt)
   -- Handler.update(dt)
+  Editor:update(dt)
 end
 
 function love.draw()

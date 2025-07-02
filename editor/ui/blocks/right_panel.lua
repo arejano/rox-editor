@@ -18,7 +18,7 @@ function RightPanel:new()
   panel.draw = function(self)
     local x, y = self:getAbsolutePosition()
     love.graphics.setColor(0.2, 0.2, 0.3)
-    love.graphics.rectangle("fill", x, y, self.rect.width, self.rect.height) -- Coordenadas locais!
+    love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height) -- Coordenadas locais!
   end
 
   panel:addChild(Button:new({

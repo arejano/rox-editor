@@ -7,62 +7,63 @@ function FloatPanel:new()
   local base_panel_width = 200
   local w, h = GetWindowSize();
 
+
+
   -- Left Panel
   local panel = UiElement:new(0, 0, 200, 40)
+  panel:bindData({
+    x = 0,
+    y = 0
+  })
   panel.name = "FloatPanel"
   panel.draw = function(self)
+    local x, y = self:getAbsolutePosition()
+    self.data.x = x
+    self.data.y = y
+    self.data.dragOffsetX = 0
+    self.data.dragOffsetY = 0
     -- print(inspect(self.parent.rect))
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("line", self.rect.x, self.rect.y, self.rect.width, self.rect.height)
+    love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
   end
 
-  -- seta para baixo
-
-  local arrow_element = UiElement:new(0, 0, 50, 50)
-  arrow_element.draw = function(self)
-    -- local x, y = self.rect.x, self.rect.y
-    local x, y = self:getAbsolutePosition()
-    print(x, y)
-    local size = 40                 -- Tamanho da seta
-    local color = { 0.2, 0.8, 0.2 } -- Verde
-
-    -- Pontos do triângulo (seta para baixo)
-    local points = {
-      x - size / 2,
-      y - size / 2, -- Ponto esquerdo superior
-      x + size / 2,
-      y + size / 2, -- Ponto direito superior
-      x,
-      y + size / 2  -- Ponto inferior central
-    }
-
-    -- Desenha a seta
-    love.graphics.setColor(color)
-    love.graphics.polygon("fill", points)
+  panel.click = function(self, mousedata)
+    ---@type MouseClickData
+    local data = mousedata
+    self.dragging = data.pressed
   end
 
+  panel.update = function(self)
+    if self.dragging then
+      local mx, my = love.mouse.getPosition()
+      local x, y = self:getAbsolutePosition()
 
-  local circle_element = UiElement:new(40, 40, 50, 50)
-  circle_element.draw = function(self)
-    local x, y = self:getAbsolutePosition()
-    local size = 40                 -- Tamanho da seta
-    local color = { 0.2, 0.8, 0.2 } -- Verde
+      self.dragOffsetX = mx - x
+      self.dragOffsetY = my - y
 
-    -- Pontos do triângulo (seta para baixo)
-    local points = {
-      x - size / 2,
-      y - size / 2, -- Ponto esquerdo superior
-      x + size / 2,
-      y + size / 2, -- Ponto direito superior
-      x,
-      y + size / 2  -- Ponto inferior central
-    }
+      -- local newX = mx - self.dragOffsetX
+      -- local newY = my - self.dragOffsetY
 
-    -- Desenha a seta
-    love.graphics.setColor(color)
-    love.graphics.polygon("fill", points)
+      -- self:updateRect({
+      --   x = newX,
+      --   y = newY,
+      --   width = self.rect.width,
+      --   height = self.rect.height,
+      -- })
+      local new_rect = {
+        x = self.rect.x,
+        y = self.rect.y,
+        width = self.rect.width,
+        height = self.rect.height,
+      }
+      self.rect = new_rect
+      print(inspect(self.rect))
+
+      self:markDirty()
+    end
   end
-  panel:addChild(arrow_element)
+
+  --   panel:addChild(arrow_element)
   -- panel:addChild(circle_element)
 
   return panel

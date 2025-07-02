@@ -5,20 +5,45 @@ local editor_ui = UiHandler:new();
 
 editor_ui.rootElement = UiElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 editor_ui.rootElement.name = "RootElement"
-editor_ui.rootElement.draw = function(_)
-end
+editor_ui.rootElement.draw = function(_) end
 
 local w, h = GetWindowSize();
 local base_panel_width = 200
 editor_ui.rootElement:addChild(require 'editor.ui.blocks.left_panel':new())
 
 -- CenterPanel
-editor_ui.rootElement:addChild(require 'editor.ui.blocks.central_panel':new(base_panel_width, 0, w - 2 *
-  base_panel_width, h))
+editor_ui.rootElement:addChild(require 'editor.ui.blocks.central_panel':new(base_panel_width, 0, w - 2 * base_panel_width,
+  h))
 
 -- RightPanel
 editor_ui.rootElement:addChild(require 'editor.ui.blocks.right_panel':new())
 
+
+local block = UiElement:new(400, 400, 200, 150)
+block.draw = function(self)
+  -- local x, y = self:getAbsolutePosition()
+  love.graphics.setColor(love.math.colorFromBytes(54, 112, 48))
+  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+end
+
+
+-- local dragger = UiElement:new(5, 5, 200, 200)
+
+-- dragger.draw = function(self)
+--   love.graphics.setColor(love.math.colorFromBytes(245, 126, 66))
+--   love.graphics.rectangle("fill", self.rect.x, self.rect.y, self.rect.width, self.rect.height)
+-- end
+
+-- block:addChild(dragger)
+
+-- local toggle = require("editor.ui.components.toggle_button"):new()
+-- dragger:addChild(toggle)
+-- toggle.rect.x = 20
+-- toggle.rect.y = 20
+
+-- block:addChild(toggle)
+
+-- editor_ui.rootElement:addChild(block)
 
 editor_ui.rootElement.canvas = nil
 
