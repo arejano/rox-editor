@@ -31,20 +31,7 @@ function RoxEditor:mouseReleased(mouseData)
 end
 
 function RoxEditor:mouseMoved()
-  local x, y = love.mouse.getPosition()
-
-  local focusedElement = self.ui_handler:handleMouseMove(x, y)
-
-  -- Você pode adicionar lógica adicional aqui
-  if focusedElement then
-    local cursor_type = focusedElement:getCursorType();
-    if cursor_type ~= nil then
-      love.mouse.setCursor(love.mouse.getSystemCursor(cursor_type))
-    else
-      love.mouse.setCursor()
-    end
-  end
-  return focusedElement
+  self.ui_handler:mouseMoved()
 end
 
 function RoxEditor:draw()

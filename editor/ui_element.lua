@@ -24,16 +24,17 @@ local DirtyFlags = make_enum({
 ---@field isDragable boolean
 ---@field dragging boolean
 local UiElement = {
+  resizable = false,
   hasMouseFocus = false,
   isMouseOver = false,
   isClickable = false,
   isDragable = false,
   lastMouseState = false,
-  resisable = false,
   resizeMode = "right",
   minWidth = 50,
   minHeight = 50,
   name = "BaseComponent",
+  dragging = false,
   canvas = nil,
   childs = {},
   rect = { x = 0, y = 0, width = 100, height = 100 }, -- Retângulo de posicionamento
@@ -77,32 +78,23 @@ end
 
 -- Marca este elemento e todos os pais como necessitando renderização
 ---@param flag DirtyFlags
-function UiElement:markDirty(flag)
-  if flag ~= nil then
-    if flag == DirtyFlags.Layout then
-    end
-
-    if flag == DirtyFlags.Content then
-    end
-
-    if flag == DirtyFlags.Full then
-    end
-  end
-
-
+function UiElement:markDirty()
   self.dirty = true
 
   -- Propaga para os pais (para casos de clipping/overlap)
-  if self.parent then
-    self.parent:markDirty()
+  -- if self.parent then
+  -- self.parent:markDirty()
+  -- end
+
+  for i, c in ipairs(self.childs) do
+    c:markDirty()
   end
 end
 
 -- Método base para draw (deve ser sobrescrito pelas classes filhas)
 function UiElement:draw()
-  print("wowwww")
   local x, y = self:getAbsolutePosition()
-  love.graphics.rectangle("line", x, y, self.rect.width, self.rect.height)
+  love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
 end
 
 function UiElement:getCursorType()
@@ -115,14 +107,9 @@ end
 
 -- Método para atualização (lógica)
 function UiElement:update(dt)
-  if self.dirty then
-    print("UiElement:update")
-    return
-  end
-  -- self:markDirty()
-  -- Atualiza todos os children
+  -- self.timeSinceLastRender = self.timeSinceLastRender + dt
   -- for _, child in ipairs(self.childs) do
-  -- child:update(dt)
+  --   child:update(dt)
   -- end
 end
 
@@ -189,6 +176,12 @@ function UiElement:render()
   end
 end
 
+function UiElement:setCanvas(w, h)
+  if self.canvas then self.canvas:release() end
+  self.canvas = love.graphics.newCanvas(w, h)
+  self.canvas:setFilter('nearest', 'nearest')
+end
+
 function UiElement:startCanvas()
   if self.canvas == nil then
     self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
@@ -228,6 +221,25 @@ function UiElement:updateRect(rect)
   end
 end
 
+---@param w number
+---@param h number
+function UiElement:updateSize(w, h)
+  self.rect.width = w
+  self.rect.height = h
+
+  if self.parent then
+    self.parent:markDirty()
+  end
+end
+
+---@param w number
+---@param h number
+function UiElement:updatePosition(x, y)
+  self.rect.x = x
+  self.rect.y = y
+  self:markDirty()
+end
+
 function UiElement:manageMemory()
   -- Para elementos fora da tela/inativos
   if not self.visible or self.alpha == 0 then
@@ -263,7 +275,7 @@ function UiElement:bindData(data)
   self.data = data
 end
 
-function UiElement:click(self)
+function UiElement:click()
   print("Click padrao do elemento")
 end
 
@@ -287,6 +299,60 @@ function UiElement:drawText(text, x, y)
 
   -- 5. Restaura configurações
   love.graphics.setFont(oldFont)
+end
+
+function UiElement:set_dragging(v)
+  self.dragging = v
+end
+
+function UiElement:handleMouseMove()
+  if self.dragging then
+    print("Esse elemento deveria estar se movendo")
+    local mx, my = love.mouse.getPosition()
+    UiElement:dragTo(mx, my)
+  end
+end
+
+function UiElement:dragTo(x, y)
+  if self.dragOffsetX and self.dragOffsetY then
+    local newX = x - self.dragOffsetX
+    local newY = y - self.dragOffsetY
+    self:updatePosition(newX, newY)
+  end
+end
+
+function UiElement:beginDrag(mouseX, mouseY)
+  local ax, ay = self:getAbsolutePosition()
+  self.dragOffsetX = mouseX - ax
+  self.dragOffsetY = mouseY - ay
+  self.dragging = true
+  self:markDirty()
+end
+
+function UiElement:endDrag()
+  self.dragging = false
+  self:markDirty()
+end
+
+function UiElement:isMouseInsideInnerBounds(mx, my)
+  local ax, ay = self:getAbsolutePosition()
+  local x1 = ax + 5
+  local y1 = ay + 5
+  local x2 = ax + self.rect.width - 5
+  local y2 = ay + self.rect.height - 5
+
+  return mx > x1 and mx < x2 and my > y1 and my < y2
+end
+
+function UiElement:focusOut()
+  self:endDrag()
+end
+
+function UiElement:loseDragFocus(mx, my, ax, ay)
+  if not self:isMouseInsideInnerBounds(mx, my) then
+    self.dragging = false
+    self:markDirty()
+  end
 end
 
 return UiElement

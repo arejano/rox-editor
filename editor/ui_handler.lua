@@ -65,6 +65,7 @@ end
 
 ---@param mouseData  MouseClickData
 function UiHandler:handleMouseClick(mouseData)
+  GlobalState:set('mouse/position', mouseData)
   if self.stopped then return end
 
   local focus = self:handleMouseMove(mouseData.x, mouseData.y)
@@ -129,12 +130,13 @@ end
 function UiHandler:updateFocus(newFocus)
   if self.stopped then return end
   -- Se o foco não mudou, não faz nada
+
   if self.elementOnMouseFocus == newFocus then
     return
   end
   -- Remove o foco do elemento anterior
   if self.elementOnMouseFocus then
-    self.elementOnMouseFocus:markDirty()
+    self.elementOnMouseFocus:focusOut()
     self.elementOnMouseFocus.hasMouseFocus = false
     self.elementOnMouseFocus.isMouseOver = false
     if self.elementOnMouseFocus.onMouseLeave then
@@ -272,6 +274,29 @@ end
 
 function UiHandler:markDirty(flag)
   self.rootElement:markDirty(flag)
+end
+
+function UiHandler:mouseMoved()
+  local focused = self:getFocusedElement()
+
+  if focused then
+    focused:handleMouseMove();
+  end
+end
+
+function UiHandler:getFocusedElement()
+  local x, y = love.mouse.getPosition()
+  local focusedElement = self:handleMouseMove(x, y)
+  -- Você pode adicionar lógica adicional aqui
+  if focusedElement then
+    local cursor_type = focusedElement:getCursorType();
+    if cursor_type ~= nil then
+      love.mouse.setCursor(love.mouse.getSystemCursor(cursor_type))
+    else
+      love.mouse.setCursor()
+    end
+  end
+  return focusedElement
 end
 
 return UiHandler
