@@ -13,25 +13,41 @@ function LeftPanel:new()
   local panel = UiElement:new(0, 0, base_panel_width, h)
   panel.name = "LeftPanel"
   panel.resizable = true
+  panel.isDragable = true
   panel.resizeMode = "left";
+
   panel.draw = function(obj)
     local x, y = obj:getAbsolutePosition()
     love.graphics.setColor(0.2, 0.2, 0.3)
-    love.graphics.rectangle("fill", x, y, obj.rect.width, obj.rect.height)
+    love.graphics.rectangle("fill", 0, 0, obj.rect.width, obj.rect.height)
   end
 
-  panel:addChild(Button:new({
-      x = 10,
-      y = 10,
-      width = panel.rect.width - 20,
-      height = 40
-    },
-    function()
-      ---@type UiThemeData
-      local data = GlobalState:get("ui/theme")
-      data.primary = data.primary .. data.primary
-      GlobalState:set("ui/theme", data)
-    end))
+
+  panel.click = function(self, mousedata)
+    if mousedata.pressed then
+      self:beginDrag(mousedata.x, mousedata.y)
+    else
+      self:endDrag()
+    end
+  end
+
+  -- panel.handleMouseMove = function(self)
+  --   if self.dragging then
+  --     local mx, my = love.mouse.getPosition()
+  --     self:dragTo(mx, my)
+  --   end
+  -- end
+
+  local button_a = Button:new({ x = 10, y = 10, width = panel.rect.width - 20, height = 40 })
+  button_a.click = function(self, mousedata)
+    ---@type UiThemeData
+    local data = GlobalState:get("ui/theme")
+    data.primary = data.primary .. data.primary
+    GlobalState:set("ui/theme", data)
+  end
+
+
+  panel:addChild(button_a)
 
   panel:addChild(Button:new({
       x = 10,

@@ -186,47 +186,49 @@ function UiHandler:resize()
   self.rootElement:updateRect({ x = 0, y = 0, width = w, height = h })
   self.uiOutOffSizeElement:updateRect({ x = 0, y = 0, width = w, height = h })
 
-  -- Encontra os painéis de referência
-  local left_panel, center_panel, right_panel
+  self.rootElement:resize(w, h)
 
-  for _, child in ipairs(self.rootElement.childs) do
-    if child.resizeMode == ResizeMode.LEFT then
-      left_panel = child
-    elseif child.resizeMode == ResizeMode.RIGHT then
-      right_panel = child
-    elseif child.resizeMode == ResizeMode.HORIZONTAL_CENTER then
-      center_panel = child
-    end
-  end
+  -- Encontra os painéis de referência
+  -- local left_panel, center_panel, right_panel
+
+  -- for _, child in ipairs(self.rootElement.childs) do
+  --   if child.resizeMode == ResizeMode.LEFT then
+  --     left_panel = child
+  --   elseif child.resizeMode == ResizeMode.RIGHT then
+  --     right_panel = child
+  --   elseif child.resizeMode == ResizeMode.HORIZONTAL_CENTER then
+  --     center_panel = child
+  --   end
+  -- end
 
   -- Redimensiona os painéis de forma relativa
-  if left_panel and right_panel then
-    -- Atualiza painel esquerdo
-    left_panel:updateRect({
-      x = 0,
-      y = 0,
-      width = left_panel.rect.width,
-      height = h
-    })
+  -- if left_panel and right_panel then
+  --   -- Atualiza painel esquerdo
+  --   left_panel:updateRect({
+  --     x = 0,
+  --     y = 0,
+  --     width = left_panel.rect.width,
+  --     height = h
+  --   })
 
-    -- Atualiza painel direito
-    right_panel:updateRect({
-      x = w - right_panel.rect.width,
-      y = 0,
-      width = right_panel.rect.width,
-      height = h
-    })
+  --   -- Atualiza painel direito
+  --   right_panel:updateRect({
+  --     x = w - right_panel.rect.width,
+  --     y = 0,
+  --     width = right_panel.rect.width,
+  --     height = h
+  --   })
 
-    -- Se existir painel central, ajusta entre os outros dois
-    if center_panel then
-      center_panel:updateRect({
-        x = left_panel.rect.width,
-        y = 0,
-        width = w - left_panel.rect.width - right_panel.rect.width,
-        height = h
-      })
-    end
-  end
+  --   -- Se existir painel central, ajusta entre os outros dois
+  --   if center_panel then
+  --     center_panel:updateRect({
+  --       x = left_panel.rect.width,
+  --       y = 0,
+  --       width = w - left_panel.rect.width - right_panel.rect.width,
+  --       height = h
+  --     })
+  --   end
+  -- end
 end
 
 -- Renderiza toda a UI

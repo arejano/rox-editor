@@ -27,9 +27,9 @@ end
 editor_ui.rootElement:addChild(float_box)
 
 
--- local w, h = GetWindowSize();
--- local base_panel_width = 200
--- editor_ui.rootElement:addChild(require 'editor.ui.blocks.left_panel':new())
+local w, h = GetWindowSize();
+local base_panel_width = 200
+editor_ui.rootElement:addChild(require 'editor.ui.blocks.left_panel':new())
 
 -- -- CenterPanel
 -- editor_ui.rootElement:addChild(require 'editor.ui.blocks.central_panel':new(base_panel_width, 0, w - 2 * base_panel_width,

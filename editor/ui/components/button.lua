@@ -6,6 +6,7 @@ Button.__index = Button
 ---@param rect Rect
 function Button:new(rect, click)
   local button = UiElement:new(rect.x, rect.y, rect.width, rect.height);
+  button.style.padding = 4
   button.isClickable = true
 
   button.draw = function(self)

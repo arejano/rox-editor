@@ -7,7 +7,7 @@ local RoxEditor = require "editor.rox_editor"
 Editor = nil
 
 function love.load()
-  debug_position()
+  -- debug_position()
 
   GlobalState = require 'global_state':new()
 

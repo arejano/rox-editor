@@ -10,6 +10,7 @@ local DirtyFlags = make_enum({
 ---@class UiElement
 ---@field childs UiElement[]
 ---@field markDirty function
+---@field onMouseLeave function
 ---@field parent UiElement | nil
 ---@field canvas any
 ---@field rect Rect
@@ -23,8 +24,16 @@ local DirtyFlags = make_enum({
 ---@field isClickable boolean
 ---@field isDragable boolean
 ---@field dragging boolean
+---@field resizing boolean
+---@field style ElementStyle
+---@field debugging ElementStyle
+---@field debug_rect Rect
 local UiElement = {
+  style = {
+    padding = 0
+  },
   resizable = false,
+  resizing = false,
   hasMouseFocus = false,
   isMouseOver = false,
   isClickable = false,
@@ -158,6 +167,7 @@ function UiElement:render()
     local r, g, b, a = love.graphics.getColor()
     love.graphics.setColor(1, 1, 1, self.alpha)
     self:draw()
+    self:debug_box()
     love.graphics.setColor(r, g, b, a)
 
     love.graphics.setCanvas()
@@ -189,6 +199,7 @@ function UiElement:startCanvas()
     self.canvas:setFilter('nearest', 'nearest')
   end
 
+  love.graphics.setLineWidth(1)
   love.graphics.setCanvas({ self.canvas, stencil = true })
   love.graphics.clear(0, 0, 0, 0, true) -- Limpa completamente com alpha 0
   love.graphics.setBlendMode('alpha')
@@ -230,6 +241,8 @@ function UiElement:updateSize(w, h)
   if self.parent then
     self.parent:markDirty()
   end
+
+  self:propagateResize()
 end
 
 ---@param w number
@@ -307,9 +320,8 @@ end
 
 function UiElement:handleMouseMove()
   if self.dragging then
-    print("Esse elemento deveria estar se movendo")
     local mx, my = love.mouse.getPosition()
-    UiElement:dragTo(mx, my)
+    self:dragTo(mx, my)
   end
 end
 
@@ -352,6 +364,57 @@ function UiElement:loseDragFocus(mx, my, ax, ay)
   if not self:isMouseInsideInnerBounds(mx, my) then
     self.dragging = false
     self:markDirty()
+  end
+end
+
+function UiElement:resize(w, h)
+  self.rect.width = w
+  self.rect.height = h
+
+  self:propagateResize()
+end
+
+function UiElement:propagateResize()
+  for i, child in ipairs(self.childs) do
+    if child.watch_resize then
+      child:watch_resize()
+    end
+  end
+end
+
+function UiElement:watch_resize()
+end
+
+function UiElement:startResize()
+  local px, py = love.mouse.getPosition()
+  self.resizing = true
+  self.resizeStartMouseX = px
+  self.resizeStartMouseY = py
+  self.resizeStartWidth = self.parent.rect.width
+  self.resizeStartHeight = self.parent.rect.height
+end
+
+function UiElement:endResize()
+  self.resizing = false
+end
+
+function UiElement:onMouseEnten()
+end
+
+function UiElement:onMouseLeave()
+end
+
+function UiElement:debug_box()
+  if self and self.debugging then
+    if self.rect then
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.setLineWidth(2)
+      if self.debug_rect then
+        love.graphics.rectangle("line", 0, 0, self.debug_rect.width, self.debug_rect.height)
+        return
+      end
+      love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
+    end
   end
 end
 
