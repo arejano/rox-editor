@@ -102,7 +102,12 @@ function love.mousereleased(x, y, button, istouch, presses)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
-  Editor:mouseMoved()
+  
+  local mouseData = {
+    x = x,
+    y = y,
+  }
+  Editor:mouseMoved(mouseData)
 end
 
 ---@param focus boolean

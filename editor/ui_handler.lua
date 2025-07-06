@@ -62,18 +62,16 @@ function UiHandler:update(dt)
   -- self.rootElement:update(dt)
 
   -- local deepestChild = self:getDeepestChildAtPosition(x, y)
-  if self.elementOnMouseFocus == nil then return end
+  -- if self.elementOnMouseFocus == nil then return end
 
-  self.elementOnMouseFocus:update(dt)
+  -- self.elementOnMouseFocus:update(dt)
 end
 
 ---@param mousedata  MouseClickData
 function UiHandler:handleMouseClick(mousedata)
   if self.stopped then return end
 
-
-
-  local focus = self:handleMouseMove(mousedata.x, mousedata.y)
+  local focus = self.elementOnMouseFocus
 
   -- Cancel Dragging and Resize
   if mousedata.release then
@@ -122,6 +120,10 @@ end
 
 function UiHandler:handleMouseMove(x, y)
   local deepestChild = self:getDeepestChildAtPosition(x, y)
+
+  if self.elementOnDragging or self.elementOnResizing then
+    return
+  end
 
   -- Atualiza o foco atual
   self:updateFocus(deepestChild)
@@ -319,7 +321,8 @@ function UiHandler:markDirty(flag)
   self.rootElement:markDirty(flag)
 end
 
-function UiHandler:mouseMoved()
+function UiHandler:mouseMoved(mousedata)
+  local focus = self:handleMouseMove(mousedata.x, mousedata.y)
   local dragging = self.elementOnDragging
   local resizing = self.elementOnResizing
 
@@ -347,24 +350,24 @@ function UiHandler:mouseMoved()
   end
 end
 
-function UiHandler:getFocusedElement()
-  local x, y = love.mouse.getPosition()
-  local focusedElement = self:handleMouseMove(x, y)
-  -- Você pode adicionar lógica adicional aqui
-  if focusedElement then
-    local cursor = self:cursorByState(focusedElement)
-    if cursor then
-      love.mouse.setCursor(love.mouse.getSystemCursor(cursor))
-    else
-      love.mouse.setCursor()
-    end
-  end
-  return focusedElement
-end
+-- function UiHandler:getFocusedElement()
+--   local x, y = love.mouse.getPosition()
+--   local focusedElement = self:handleMouseMove(x, y)
+--   -- Você pode adicionar lógica adicional aqui
+--   if focusedElement then
+--     local cursor = self:cursorByState(focusedElement)
+--     if cursor then
+--       love.mouse.setCursor(love.mouse.getSystemCursor(cursor))
+--     else
+--       love.mouse.setCursor()
+--     end
+--   end
+--   return focusedElement
+-- end
 
 ---@param element UiElement
 function UiHandler:cursorByState(element)
-  if self.elementOnResizing or element.isResizer then
+  if self.elementOnResizing then
     return 'sizenwse'
   end
 

@@ -30,8 +30,8 @@ function RoxEditor:mouseReleased(mouseData)
   self.ui_handler:handleMouseClick(mouseData)
 end
 
-function RoxEditor:mouseMoved()
-  self.ui_handler:mouseMoved()
+function RoxEditor:mouseMoved(mousedata)
+  self.ui_handler:mouseMoved(mousedata)
 end
 
 function RoxEditor:draw()
