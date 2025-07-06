@@ -15,15 +15,7 @@ editor_ui.rootElement.draw = function(_) end
 -- editor_ui.rootElement:addChild(float)
 
 local float_box = FloatBox(Rect.box(300, 300), nil)
-float_box.isDragable = true
 
-
-
-local teste = UiElement:new(0, 0, 100, 100)
-teste.draw = function(self)
-  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
-end
--- editor_ui.rootElement:addChild(teste)
 editor_ui.rootElement:addChild(float_box)
 
 

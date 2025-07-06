@@ -1,5 +1,4 @@
 local UiElement = require "editor.ui_element"
-local ResizeMode = require "editor.enum_resize_mode"
 
 ---@class UiHandler
 ---@field rootElement UiElement | nil
@@ -14,6 +13,7 @@ local UiHandler = {
   stopped = false,
   elementOnMouseFocus = nil,
   elementOnDragging = nil,
+  elementOnResizing = nil,
 }
 UiHandler.__index = UiHandler
 
@@ -71,23 +71,46 @@ end
 function UiHandler:handleMouseClick(mousedata)
   if self.stopped then return end
 
+
+
   local focus = self:handleMouseMove(mousedata.x, mousedata.y)
 
-
-  if focus ~= nil and focus.isDragable then
-    if mousedata.pressed then
-      focus:beginDrag(mousedata.x, mousedata.y)
-      print("begin")
-      self.elementOnDragging = focus
-    else
-      focus:endDrag()
-      print("end")
-      self.elementOnDragging = nil
+  -- Cancel Dragging and Resize
+  if mousedata.release then
+    if self.elementOnResizing then
+      self.elementOnResizing:endResize()
+      self.elementOnResizing = nil
     end
 
+    if self.elementOnDragging then
+      self.elementOnDragging:endDrag()
+      self.elementOnDragging = nil
+    end
+  end
+
+  if focus and focus.transpass then
+    while focus.transpass do
+      focus = focus.parent
+    end
+  end
+
+  -- Resizing
+  if focus ~= nil and focus.resizer_target then
+    if mousedata.pressed then
+      self.elementOnResizing = focus:startResize()
+    end
     return
   end
 
+  -- Dragging
+  if focus ~= nil and focus.isDragable then
+    if mousedata.pressed then
+      self.elementOnDragging = focus:beginDrag(mousedata.x, mousedata.y)
+    end
+    return
+  end
+
+  -- Change Focus
   if focus ~= nil and focus.click then
     if mousedata.pressed then
       focus:click(mousedata)
@@ -176,7 +199,7 @@ function UiHandler:updateFocus(newFocus)
     end
 
     -- Propaga para cima na hierarquia (opcional)
-    -- self:propagateMouseOver(newFocus)
+    self:propagateMouseOver(newFocus)
     newFocus:markDirty()
   end
 end
@@ -297,8 +320,8 @@ function UiHandler:markDirty(flag)
 end
 
 function UiHandler:mouseMoved()
-  local focused = self:getFocusedElement()
   local dragging = self.elementOnDragging
+  local resizing = self.elementOnResizing
 
   if dragging then
     local mx, my = love.mouse.getPosition()
@@ -306,6 +329,15 @@ function UiHandler:mouseMoved()
       dragging.drag_taget:dragTo(mx, my)
     else
       dragging:dragTo(mx, my)
+    end
+    return
+  end
+
+  if resizing then
+    if resizing.resizer_target then
+      resizing:resizeTarget()
+    else
+      print("Nao existe elemento para redimennsionar")
     end
     return
   end
@@ -320,14 +352,32 @@ function UiHandler:getFocusedElement()
   local focusedElement = self:handleMouseMove(x, y)
   -- Você pode adicionar lógica adicional aqui
   if focusedElement then
-    local cursor_type = focusedElement:getCursorType();
-    if cursor_type ~= nil then
-      love.mouse.setCursor(love.mouse.getSystemCursor(cursor_type))
+    local cursor = self:cursorByState(focusedElement)
+    if cursor then
+      love.mouse.setCursor(love.mouse.getSystemCursor(cursor))
     else
       love.mouse.setCursor()
     end
   end
   return focusedElement
+end
+
+---@param element UiElement
+function UiHandler:cursorByState(element)
+  if self.elementOnResizing or element.isResizer then
+    return 'sizenwse'
+  end
+
+
+  if self.elementOnDragging or element.dragging then
+    return 'hand'
+  end
+
+  if element.isClickable then
+    return 'hand'
+  else
+    return nil
+  end
 end
 
 return UiHandler

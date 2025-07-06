@@ -8,3 +8,7 @@
 
 ---@class ElementStyle
 ---@field padding number
+---@field bg {}number
+---@field fg {}number
+---@field border {}number
+---@field border_dragging {}number

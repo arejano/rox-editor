@@ -1,5 +1,14 @@
 dofile("globals.lua")
 
+
+local ball = {
+  x = 400,
+  y = 300,
+  radius = 10,
+  speedX = 200,
+  speedY = 150
+}
+
 local WindowManager = require "window_manager"
 local RoxEditor = require "editor.rox_editor"
 
@@ -28,9 +37,33 @@ end
 function love.update(dt)
   -- Handler.update(dt)
   Editor:update(dt)
+
+  ball.x = ball.x + ball.speedX * dt
+  ball.y = ball.y + ball.speedY * dt
+
+  -- Colisão com bordas horizontais
+  if ball.x - ball.radius < 0 then
+    ball.x = ball.radius
+    ball.speedX = -ball.speedX
+  elseif ball.x + ball.radius > love.graphics.getWidth() then
+    ball.x = love.graphics.getWidth() - ball.radius
+    ball.speedX = -ball.speedX
+  end
+
+  -- Colisão com bordas verticais
+  if ball.y - ball.radius < 0 then
+    ball.y = ball.radius
+    ball.speedY = -ball.speedY
+  elseif ball.y + ball.radius > love.graphics.getHeight() then
+    ball.y = love.graphics.getHeight() - ball.radius
+    ball.speedY = -ball.speedY
+  end
 end
 
 function love.draw()
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.circle("fill", ball.x, ball.y, ball.radius)
+
   Editor:draw()
 end
 

@@ -1,5 +1,7 @@
 local UiElement = require "editor.ui_element"
 local Button = require 'editor.ui.components.button'
+local Text = require 'editor.ui.components.text'
+local Resizer = require "editor.ui.components.resizer"
 
 local br = { x = 0, y = 0, width = 100, height = 100 }
 local sr = { x = 0, y = 0, width = 100, height = 100 }
@@ -12,135 +14,48 @@ local float_box = function(rect, props)
   local h = 600
 
   local element = UiElement:new(250, 50, w, h)
-  element.style.padding = 8
+  element.style.padding = 4
+  element.minHeight = 200
+  element.minWidth = 200
   element.isDragable = true
 
+  local text = Text:new({ x = 0, y = 0, width = 200, height = 32 }, "Titulo Janela")
+
   -- resizer
-  local resizerSize = 40
-
-  local resizer = UiElement:new(w - resizerSize, h - resizerSize, resizerSize, resizerSize)
-  resizer.isClickable = true
-  resizer.draw = function(self)
-    love.graphics.setColor(0.2, 0.6, 0.9)
-
-    love.graphics.polygon("fill", {
-      self.rect.width, 0,
-      self.rect.width, self.rect.height,
-      0, self.rect.height
-    })
-  end
-
-
-  resizer.click = function(self, mousedata)
-    if mousedata.pressed then
-      self:startResize()
-    else
-      self:endResize()
-    end
-  end
-
-
-  resizer.handleMouseMove = function(self)
-    if self.resizing then
-      local mx, my = love.mouse.getPosition()
-      local dx = mx - self.resizeStartMouseX
-      local dy = my - self.resizeStartMouseY
-
-      local newWidth = math.max(self.parent.minWidth or 100, self.resizeStartWidth + dx)
-      local newHeight = math.max(self.parent.minHeight or 100, self.resizeStartHeight + dy)
-
-      self.parent:updateSize(newWidth, newHeight)
-
-      -- Reposiciona o próprio resizer no canto
-      self.rect.x = newWidth - resizerSize
-      self.rect.y = newHeight - resizerSize
-
-      self.parent:markDirty()
-    end
-  end
+  local resizer = Resizer:new(w, h, element)
   element:addChild(resizer)
 
   -- Anchor Block
-  local anchor_block = UiElement:new(element.style.padding, element.style.padding, w - element.style.padding * 2, 50)
-  anchor_block.isDragable = true
-  anchor_block.isClickable = true
+  local anchor_block = UiElement:new(element.style.padding, element.style.padding, w - element.style.padding * 2, 30)
+  anchor_block.style.padding = 8
+  anchor_block.transpass = true
+
+  anchor_block:addChild(text)
+
   -- Anchor Block - Draw
   anchor_block.draw = function(self)
-    local bgColor = self.parent.dragging and { 0.3, 0.7, 0.3 } or { 0.7, 0.3, 0.3 }
-    love.graphics.setColor(bgColor)
+    love.graphics.setColor(love.math.colorFromBytes(151, 187, 195))
     love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
   end
-  anchor_block.watch_resize = function(self)
-    local new_w = self.parent.rect.width - (self.parent.style.padding * 2)
+  local _watch = function(self)
+    local new_w = self.parent.rect.width - self.parent.style.padding * 2
     self.rect.width = new_w
   end
-  anchor_block.debugging = true
-  anchor_block.drag_taget = element
-
-  local close_button = Button:new(
-    {
-      x = anchor_block.style.padding - anchor_block.style.padding / 2,
-      y = anchor_block.style.padding - anchor_block.style.padding / 2,
-      width = anchor_block.rect.height - (anchor_block.style.padding),
-      height = anchor_block.rect.height - (anchor_block.style.padding)
-    },
-    function(self)
-      print("Close Float")
-    end)
-
-  close_button.debugging = true
-
-  local close_icon = require "editor.ui.components.icon"
-  close_icon.isClickable = true
-  close_icon.debugging = true
-  close_button:addChild(close_icon)
-
-  anchor_block:addChild(close_button)
-
-
-  local ab_2 = UiElement:new(element.style.padding, 80, 80, 50)
-  ab_2.isDragable = true
-  ab_2.isClickable = true
-  -- Anchor Block - Draw
-  ab_2.draw = function(self)
-    local bgColor = self.parent.dragging and { 0.3, 0.7, 0.3 } or { 0.7, 0.3, 0.3 }
-    love.graphics.setColor(bgColor)
-    love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
-  end
-
-
-  -- Anchor Block - Click
-  ---@param mousedata MouseClickData
-  local dragClick = function(self, mousedata)
-    print("WoW")
-    if mousedata.pressed then
-      self.parent:beginDrag(mousedata.x, mousedata.y)
-    else
-      self.parent:endDrag()
-    end
-  end
-
-  anchor_block.click = dragClick
-  ab_2.click = dragClick
-
-  local handleMouse = function(self)
-    if self.parent.dragging then
-      local mx, my = love.mouse.getPosition()
-      self.parent:dragTo(mx, my)
-    end
-  end
-  anchor_block.handleMouseMove = handleMouse
-  ab_2.handleMouseMove = handleMouse
-  ab_2.debugging = true
+  anchor_block.watch_resize = _watch
 
   element.draw = function(self)
     local bgColor = self.dragging and { 0.6, 0.3, 0.1 } or { 1, 1, 1 }
-    love.graphics.setColor(bgColor)
+    local border_color = self.dragging and self.style.border_dragging or self.style.border
+
+    love.graphics.setColor(love.math.colorFromBytes(self.style.bg))
     love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+
+    love.graphics.setLineWidth(4)
+    love.graphics.setColor(love.math.colorFromBytes(border_color))
+    love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
   end
 
 
-  element:addChild(ab_2)
   element:addChild(anchor_block)
 
   return element

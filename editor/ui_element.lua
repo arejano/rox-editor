@@ -10,6 +10,8 @@ local DirtyFlags = make_enum({
 ---@class UiElement
 ---@field childs UiElement[]
 ---@field markDirty function
+---@field startResize function
+---@field endResize function
 ---@field onMouseLeave function
 ---@field parent UiElement | nil
 ---@field canvas any
@@ -24,14 +26,25 @@ local DirtyFlags = make_enum({
 ---@field isClickable boolean
 ---@field isDragable boolean
 ---@field dragging boolean
+---@field dragOffsetX number
+---@field dragOffsetY number
 ---@field resizing boolean
 ---@field style ElementStyle
 ---@field debugging ElementStyle
 ---@field debug_rect Rect
 ---@field drag_taget UiElement
+---@field isResizer boolean
+---@field resizer_target UiElement
+---@field transpass boolean
+---@field hasMouseFocus boolean
+---@field isMouseOver boolean
 local UiElement = {
   style = {
-    padding = 0
+    padding         = 0,
+    bg              = { 0, 0, 0 },
+    fg              = { 1, 1, 1 },
+    border          = { 151, 187, 195 },
+    border_dragging = { 191, 32, 50 },
   },
   resizable = false,
   resizing = false,
@@ -73,6 +86,10 @@ function UiElement:new(x, y, width, height)
   return obj
 end
 
+function UiElement:start()
+  print("default start")
+end
+
 -- Método para obter posição absoluta (considerando hierarquia)
 function UiElement:getAbsolutePosition()
   if not self.parent then
@@ -107,14 +124,6 @@ function UiElement:draw()
   love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
 end
 
-function UiElement:getCursorType()
-  if self.isClickable then
-    return 'hand'
-  else
-    return nil
-  end
-end
-
 -- Método para atualização (lógica)
 function UiElement:update(dt)
   -- self.timeSinceLastRender = self.timeSinceLastRender + dt
@@ -131,6 +140,13 @@ end
 function UiElement:addChild(child)
   table.insert(self.childs, child)
   child.parent = self
+
+  if child.start then
+    child:start()
+    print(inspect(child.parent.data))
+  end
+
+
   self:markDirty() -- A interface mudou
   return child
 end
@@ -293,19 +309,19 @@ function UiElement:click()
   print("Click padrao do elemento")
 end
 
-function UiElement:drawText(text, x, y)
+function UiElement:drawText(text, x, y, size, color)
   -- 1. Configurações ótimas para texto claro
   local oldFont = love.graphics.getFont()
 
   -- 2. Crie uma fonte dedicada se necessário
   if not self.uiFont then
-    self.uiFont = love.graphics.newFont(12) -- Tamanho adequado
+    self.uiFont = love.graphics.newFont(size or 12) -- Tamanho adequado
     self.uiFont:setFilter("nearest", "nearest")
   end
 
   -- 3. Aplica configurações
   love.graphics.setFont(self.uiFont)
-  love.graphics.setColor(1, 1, 1, 1) -- Branco sólido
+  love.graphics.setColor(self.style.bg) -- Branco sólido
 
   -- 4. Renderiza o texto com offsets inteiros para evitar borrão
   local ix, iy = math.floor(x), math.floor(y)
@@ -315,15 +331,7 @@ function UiElement:drawText(text, x, y)
   love.graphics.setFont(oldFont)
 end
 
-function UiElement:set_dragging(v)
-  self.dragging = v
-end
-
 function UiElement:handleMouseMove()
-  -- if self.dragging then
-  --   local mx, my = love.mouse.getPosition()
-  --   self:dragTo(mx, my)
-  -- end
 end
 
 function UiElement:dragTo(x, y)
@@ -334,6 +342,7 @@ function UiElement:dragTo(x, y)
   end
 end
 
+---@return UiElement
 function UiElement:beginDrag(mouseX, mouseY)
   local target = self.drag_taget and self.drag_taget or self
 
@@ -343,6 +352,7 @@ function UiElement:beginDrag(mouseX, mouseY)
   target.dragOffsetY = mouseY - ay
   target.dragging = true
   target:markDirty()
+  return self
 end
 
 function UiElement:endDrag()
@@ -366,16 +376,14 @@ function UiElement:focusOut()
   self:endDrag()
 end
 
-function UiElement:loseDragFocus(mx, my, ax, ay)
-  if not self:isMouseInsideInnerBounds(mx, my) then
-    self.dragging = false
-    self:markDirty()
-  end
-end
-
 function UiElement:resize(w, h)
-  self.rect.width = w
-  self.rect.height = h
+  if w > self.minWidth then
+    self.rect.width = w
+  end
+
+  if h > self.minHeight then
+    self.rect.height = h
+  end
 
   self:propagateResize()
 end
@@ -391,6 +399,7 @@ end
 function UiElement:watch_resize()
 end
 
+---@return UiElement
 function UiElement:startResize()
   local px, py = love.mouse.getPosition()
   self.resizing = true
@@ -398,6 +407,7 @@ function UiElement:startResize()
   self.resizeStartMouseY = py
   self.resizeStartWidth = self.parent.rect.width
   self.resizeStartHeight = self.parent.rect.height
+  return self
 end
 
 function UiElement:endResize()
