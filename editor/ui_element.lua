@@ -28,6 +28,7 @@ local DirtyFlags = make_enum({
 ---@field style ElementStyle
 ---@field debugging ElementStyle
 ---@field debug_rect Rect
+---@field drag_taget UiElement
 local UiElement = {
   style = {
     padding = 0
@@ -319,10 +320,10 @@ function UiElement:set_dragging(v)
 end
 
 function UiElement:handleMouseMove()
-  if self.dragging then
-    local mx, my = love.mouse.getPosition()
-    self:dragTo(mx, my)
-  end
+  -- if self.dragging then
+  --   local mx, my = love.mouse.getPosition()
+  --   self:dragTo(mx, my)
+  -- end
 end
 
 function UiElement:dragTo(x, y)
@@ -334,16 +335,21 @@ function UiElement:dragTo(x, y)
 end
 
 function UiElement:beginDrag(mouseX, mouseY)
-  local ax, ay = self:getAbsolutePosition()
-  self.dragOffsetX = mouseX - ax
-  self.dragOffsetY = mouseY - ay
-  self.dragging = true
-  self:markDirty()
+  local target = self.drag_taget and self.drag_taget or self
+
+  local ax, ay = target:getAbsolutePosition()
+
+  target.dragOffsetX = mouseX - ax
+  target.dragOffsetY = mouseY - ay
+  target.dragging = true
+  target:markDirty()
 end
 
 function UiElement:endDrag()
-  self.dragging = false
-  self:markDirty()
+  local target = self.drag_taget and self.drag_taget or self
+
+  target.dragging = false
+  target:markDirty()
 end
 
 function UiElement:isMouseInsideInnerBounds(mx, my)

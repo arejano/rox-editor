@@ -75,6 +75,7 @@ local float_box = function(rect, props)
     self.rect.width = new_w
   end
   anchor_block.debugging = true
+  anchor_block.drag_taget = element
 
   local close_button = Button:new(
     {
@@ -95,7 +96,6 @@ local float_box = function(rect, props)
   close_button:addChild(close_icon)
 
   anchor_block:addChild(close_button)
-  anchor_block.debugging = true
 
 
   local ab_2 = UiElement:new(element.style.padding, 80, 80, 50)
@@ -112,6 +112,7 @@ local float_box = function(rect, props)
   -- Anchor Block - Click
   ---@param mousedata MouseClickData
   local dragClick = function(self, mousedata)
+    print("WoW")
     if mousedata.pressed then
       self.parent:beginDrag(mousedata.x, mousedata.y)
     else

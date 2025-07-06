@@ -6,10 +6,14 @@ local ResizeMode = require "editor.enum_resize_mode"
 ---@field uiOutOffSizeElement UiElement | nil
 ---@field addElement function
 ---@field stopped boolean
+---@field elementOnMouseFocus UiElement | nil
+---@field elementOnDragging UiElement | nil
 local UiHandler = {
   rootElement = nil,
   uiOutOffSizeElement = nil,
   stopped = false,
+  elementOnMouseFocus = nil,
+  elementOnDragging = nil,
 }
 UiHandler.__index = UiHandler
 
@@ -63,24 +67,37 @@ function UiHandler:update(dt)
   self.elementOnMouseFocus:update(dt)
 end
 
----@param mouseData  MouseClickData
-function UiHandler:handleMouseClick(mouseData)
-  GlobalState:set('mouse/position', mouseData)
+---@param mousedata  MouseClickData
+function UiHandler:handleMouseClick(mousedata)
   if self.stopped then return end
 
-  local focus = self:handleMouseMove(mouseData.x, mouseData.y)
+  local focus = self:handleMouseMove(mousedata.x, mousedata.y)
+
+
+  if focus ~= nil and focus.isDragable then
+    if mousedata.pressed then
+      focus:beginDrag(mousedata.x, mousedata.y)
+      print("begin")
+      self.elementOnDragging = focus
+    else
+      focus:endDrag()
+      print("end")
+      self.elementOnDragging = nil
+    end
+
+    return
+  end
 
   if focus ~= nil and focus.click then
-    if mouseData.pressed then
-      focus:click(mouseData)
+    if mousedata.pressed then
+      focus:click(mousedata)
     else
-      focus:click(mouseData)
+      focus:click(mousedata)
     end
   end
 end
 
 function UiHandler:handleMouseMove(x, y)
-  if self.stopped then return end
   local deepestChild = self:getDeepestChildAtPosition(x, y)
 
   -- Atualiza o foco atual
@@ -129,11 +146,12 @@ end
 
 function UiHandler:updateFocus(newFocus)
   if self.stopped then return end
-  -- Se o foco não mudou, não faz nada
 
+  -- Se o foco não mudou, não faz nada
   if self.elementOnMouseFocus == newFocus then
     return
   end
+
   -- Remove o foco do elemento anterior
   if self.elementOnMouseFocus then
     self.elementOnMouseFocus:focusOut()
@@ -280,9 +298,20 @@ end
 
 function UiHandler:mouseMoved()
   local focused = self:getFocusedElement()
+  local dragging = self.elementOnDragging
 
-  if focused then
-    focused:handleMouseMove();
+  if dragging then
+    local mx, my = love.mouse.getPosition()
+    if dragging.drag_taget then
+      dragging.drag_taget:dragTo(mx, my)
+    else
+      dragging:dragTo(mx, my)
+    end
+    return
+  end
+
+  if self.elementOnMouseFocus then
+    self.elementOnMouseFocus:handleMouseMove();
   end
 end
 
