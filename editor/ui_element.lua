@@ -87,7 +87,6 @@ function UiElement:new(x, y, width, height)
 end
 
 function UiElement:start()
-  print("default start")
 end
 
 -- Método para obter posição absoluta (considerando hierarquia)
@@ -120,7 +119,7 @@ end
 
 -- Método base para draw (deve ser sobrescrito pelas classes filhas)
 function UiElement:draw()
-  local x, y = self:getAbsolutePosition()
+  love.graphics.setColor(love.math.colorFromBytes(self.style.border))
   love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
 end
 
@@ -143,9 +142,7 @@ function UiElement:addChild(child)
 
   if child.start then
     child:start()
-    print(inspect(child.parent.data))
   end
-
 
   self:markDirty() -- A interface mudou
   return child

@@ -102,7 +102,6 @@ function love.mousereleased(x, y, button, istouch, presses)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
-  
   local mouseData = {
     x = x,
     y = y,

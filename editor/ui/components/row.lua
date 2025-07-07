@@ -1,34 +1,32 @@
 local UiElement = require "editor.ui_element"
 
-local Button = {
+local Row = {}
 
-}
+function Row:new(x, y, w, h)
+  local element = UiElement:new(x, y, w, h)
 
-function Button:new(x, y, w, h)
-  local button = UiElement:new(x, y, w, h);
-  button.isClickable = true
+  ---@param self UiElement
+  local _watch = function(self)
+    self.rect.width = self.parent.rect.width - (self.parent.style.padding * 4)
 
-  button.draw = function(self)
-    local color = setColorConfig(self);
-    love.graphics.setColor(color)
-    love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+    local split_size = self.rect.width / #self.childs
+
+    local new_split_w = split_size
+
+    for i, c in ipairs(self.childs) do
+      local max_h = self.rect.height - (self.style.padding * 2)
+      c.rect.x = (new_split_w * (i - 1)) + self.style.padding
+      c.rect.y = self.style.padding
+      c.rect.width = new_split_w - (self.style.padding * 2)
+      c.rect.height = max_h
+    end
   end
 
-  return button
-end
-
-function setColorConfig(self)
-  local color
-  if not self.visible then
-    color = { 0.2, 0.2, 0.2 } -- Desabilitado
-  elseif self.hasMouseFocus and love.mouse.isDown(1) then
-    color = { 0.3, 0.3, 0.9 } -- Clicando
-  elseif self.hasMouseFocus then
-    color = { 0.5, 0.5, 0.9 } -- Hover
-  else
-    color = { 0.4, 0.4, 0.6 } -- Normal
+  element.watch_resize = _watch
+  element.start = function(self)
+    self:watch_resize()
   end
-  return color
+  return element
 end
 
-return Button;
+return Row;

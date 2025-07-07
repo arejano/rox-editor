@@ -1,4 +1,5 @@
 local UiElement = require "editor.ui_element"
+local OutOffSize = require "editor.ui.blocks.out_space_error"
 
 ---@class UiHandler
 ---@field rootElement UiElement | nil
@@ -22,42 +23,12 @@ function UiHandler:new()
   obj.elementOnMouseFocus = nil
   obj.previousMouseFocus = nil
 
-  obj.uiOutOffSizeElement = newUiOutOffSize()
+  obj.uiOutOffSizeElement = OutOffSize:new()
 
   return obj
 end
 
-function newUiOutOffSize()
-  local uiOutOffSizeElement = UiElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-  uiOutOffSizeElement.name = "OutOffSizeElement"
-  uiOutOffSizeElement.draw = function(_)
-    local w, h = GetWindowSize()
-    love.graphics.clear()
-    -- love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("fill", 0, 0, w, h)
-
-    local font = love.graphics.newFont(42)
-    love.graphics.setFont(font)
-
-    -- Texto que será exibido
-    local text = "ERRO"
-
-    -- Obtém as dimensões do texto
-    local textWidth = font:getWidth(text)
-    local textHeight = font:getHeight()
-
-    -- Calcula a posição centralizada
-    local x = (w - textWidth) / 2
-    local y = (h - textHeight) / 2
-
-    -- Desenha o texto
-    love.graphics.setColor(1, 0, 0) -- Vermelho
-    love.graphics.print(text, x, y)
-  end
-  return uiOutOffSizeElement
-end
-
--- Atualiza toda a UI
+---------------------------------------------------------Update
 function UiHandler:update(dt)
   -- self.rootElement:update(dt)
 
@@ -67,6 +38,7 @@ function UiHandler:update(dt)
   -- self.elementOnMouseFocus:update(dt)
 end
 
+---------------------------------------------------------Mouse
 ---@param mousedata  MouseClickData
 function UiHandler:handleMouseClick(mousedata)
   if self.stopped then return end
@@ -119,11 +91,12 @@ function UiHandler:handleMouseClick(mousedata)
 end
 
 function UiHandler:handleMouseMove(x, y)
-  local deepestChild = self:getDeepestChildAtPosition(x, y)
-
   if self.elementOnDragging or self.elementOnResizing then
     return
   end
+
+  local deepestChild = self:getDeepestChildAtPosition(x, y)
+
 
   -- Atualiza o foco atual
   self:updateFocus(deepestChild)
@@ -170,8 +143,6 @@ function UiHandler:getDeepestChildAtPosition(x, y)
 end
 
 function UiHandler:updateFocus(newFocus)
-  if self.stopped then return end
-
   -- Se o foco não mudou, não faz nada
   if self.elementOnMouseFocus == newFocus then
     return
@@ -215,6 +186,7 @@ function UiHandler:propagateMouseOver(element)
   end
 end
 
+--------------------------------------------------------- Resize
 function UiHandler:resize()
   local w, h = love.graphics.getDimensions()
 
@@ -230,48 +202,6 @@ function UiHandler:resize()
   self.uiOutOffSizeElement:updateRect({ x = 0, y = 0, width = w, height = h })
 
   self.rootElement:resize(w, h)
-
-  -- Encontra os painéis de referência
-  -- local left_panel, center_panel, right_panel
-
-  -- for _, child in ipairs(self.rootElement.childs) do
-  --   if child.resizeMode == ResizeMode.LEFT then
-  --     left_panel = child
-  --   elseif child.resizeMode == ResizeMode.RIGHT then
-  --     right_panel = child
-  --   elseif child.resizeMode == ResizeMode.HORIZONTAL_CENTER then
-  --     center_panel = child
-  --   end
-  -- end
-
-  -- Redimensiona os painéis de forma relativa
-  -- if left_panel and right_panel then
-  --   -- Atualiza painel esquerdo
-  --   left_panel:updateRect({
-  --     x = 0,
-  --     y = 0,
-  --     width = left_panel.rect.width,
-  --     height = h
-  --   })
-
-  --   -- Atualiza painel direito
-  --   right_panel:updateRect({
-  --     x = w - right_panel.rect.width,
-  --     y = 0,
-  --     width = right_panel.rect.width,
-  --     height = h
-  --   })
-
-  --   -- Se existir painel central, ajusta entre os outros dois
-  --   if center_panel then
-  --     center_panel:updateRect({
-  --       x = left_panel.rect.width,
-  --       y = 0,
-  --       width = w - left_panel.rect.width - right_panel.rect.width,
-  --       height = h
-  --     })
-  --   end
-  -- end
 end
 
 -- Renderiza toda a UI

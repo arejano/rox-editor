@@ -2,6 +2,7 @@ local UiElement = require "editor.ui_element"
 local Button = require 'editor.ui.components.button'
 local Text = require 'editor.ui.components.text'
 local Resizer = require "editor.ui.components.resizer"
+local Row = require "editor.ui.components.row"
 
 local br = { x = 0, y = 0, width = 100, height = 100 }
 local sr = { x = 0, y = 0, width = 100, height = 100 }
@@ -54,6 +55,24 @@ local float_box = function(rect, props)
     love.graphics.setColor(love.math.colorFromBytes(border_color))
     love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
   end
+
+  local row = Row:new(element.style.padding, 80, element.rect.width - 30, 50)
+  row.style.padding = 4
+  row:addChild(UiElement:new(0, 0, 40, row.rect.width - row.style.padding * 2))
+  row:addChild(UiElement:new(0, 0, 40, row.rect.width - row.style.padding * 2))
+
+  element:addChild(row)
+
+
+  local row2 = Row:new(8, 140, element.rect.width - 30, 50)
+  row2.style.padding = 4
+  row2:addChild(UiElement:new(0, 0, 40, row.rect.width - row.style.padding * 2))
+  row2:addChild(UiElement:new(0, 0, 40, row.rect.width - row.style.padding * 2))
+  row2:addChild(UiElement:new(0, 0, 40, row.rect.width - row.style.padding * 2))
+  row2:addChild(UiElement:new(0, 0, 40, row.rect.width - row.style.padding * 2))
+  row2:addChild(UiElement:new(0, 0, 40, row.rect.width - row.style.padding * 2))
+
+  element:addChild(row2)
 
 
   element:addChild(anchor_block)
