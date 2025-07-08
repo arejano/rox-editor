@@ -1,12 +1,3 @@
-local ResizeMode = require "editor.enum_resize_mode"
-
----@enum DirtyFlags
-local DirtyFlags = make_enum({
-  "Layout",
-  "Content",
-  "Full",
-})
-
 ---@class UiElement
 ---@field childs UiElement[]
 ---@field markDirty function
@@ -38,6 +29,7 @@ local DirtyFlags = make_enum({
 ---@field transpass boolean
 ---@field hasMouseFocus boolean
 ---@field isMouseOver boolean
+---@field target UiElement | nil
 local UiElement = {
   style = {
     padding         = 0,
@@ -74,6 +66,7 @@ local UiElement = {
   fixedSize = false,
   -- Data | Ter uma tabela de dados para o elemento
   data = nil,
+  target = nil,
 }
 UiElement.__index = UiElement
 
@@ -242,7 +235,7 @@ function UiElement:updateRect(rect)
 
   -- Marca os pais como dirty para garantir que a hierarquia seja atualizada
   if self.parent then
-    self.parent:markDirty(DirtyFlags.Layout)
+    self.parent:markDirty()
   end
 end
 
@@ -335,6 +328,7 @@ function UiElement:dragTo(x, y)
   if self.dragOffsetX and self.dragOffsetY then
     local newX = x - self.dragOffsetX
     local newY = y - self.dragOffsetY
+
     self:updatePosition(newX, newY)
   end
 end

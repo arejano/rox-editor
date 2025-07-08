@@ -15,13 +15,19 @@ editor_ui.rootElement.draw = function(_) end
 -- editor_ui.rootElement:addChild(float)
 
 local float_box = FloatBox(Rect.box(300, 300), nil)
+local float_box1 = FloatBox(Rect.box(300, 300), nil)
+local float_box2 = FloatBox(Rect.box(300, 300), nil)
+local float_box3 = FloatBox(Rect.box(300, 300), nil)
 
 editor_ui.rootElement:addChild(float_box)
+-- editor_ui.rootElement:addChild(float_box1)
+-- editor_ui.rootElement:addChild(float_box2)
+-- editor_ui.rootElement:addChild(float_box3)
 
 
 local w, h = GetWindowSize();
 local base_panel_width = 200
-editor_ui.rootElement:addChild(require 'editor.ui.blocks.left_panel':new())
+-- editor_ui.rootElement:addChild(require 'editor.ui.blocks.left_panel':new())
 
 -- -- CenterPanel
 -- editor_ui.rootElement:addChild(require 'editor.ui.blocks.central_panel':new(base_panel_width, 0, w - 2 * base_panel_width,
