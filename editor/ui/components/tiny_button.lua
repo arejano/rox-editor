@@ -9,6 +9,11 @@ function TinyButton:new(rect, click)
 	button.isClickable = true
 
 	button.draw = function(self)
+		if self.texture then
+			self:drawTexture()
+			return
+		end
+
 		love.graphics.setColor(self.style.bg)
 		love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
 	end

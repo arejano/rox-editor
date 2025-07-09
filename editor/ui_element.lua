@@ -1,12 +1,12 @@
----@class UiElement
+---@class UIElement
 ---@field ID string
----@field childs UiElement[]
+---@field childs UIElement[]
 ---@field markDirty function
 ---@field startResize function
 ---@field endResize function
 ---@field onMouseLeave function
 ---@field handleEvent function
----@field parent UiElement | nil
+---@field parent UIElement | nil
 ---@field canvas any
 ---@field rect Rect
 ---@field dirty boolean
@@ -25,13 +25,16 @@
 ---@field style ElementStyle
 ---@field debugging ElementStyle
 ---@field debug_rect Rect
----@field drag_taget UiElement
+---@field drag_taget UIElement
 ---@field isResizer boolean
----@field resizer_target UiElement
+---@field resizer_target UIElement
 ---@field transpass boolean
 ---@field hasMouseFocus boolean
 ---@field isMouseOver boolean
----@field target UiElement | nil
+---@field target UIElement | nil
+---@field texture any
+---@field index number
+---@field to_front UIElement
 local UIElement = {
   ID = "",
   style = {
@@ -71,6 +74,9 @@ local UIElement = {
   -- Data | Ter uma tabela de dados para o elemento
   data = nil,
   target = nil,
+  texture = nil,
+  index = 0,
+  to_front = nil,
 }
 UIElement.__index = UIElement
 
@@ -117,8 +123,17 @@ end
 
 -- Método base para draw (deve ser sobrescrito pelas classes filhas)
 function UIElement:draw()
+  if self.texture then
+    self:drawTexture()
+    return
+  end
+
   love.graphics.setColor(love.math.colorFromBytes(self.style.border))
   love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
+end
+
+function UIElement:drawTexture()
+  love.graphics.draw(self.texture, 0, 0, 0, 1, 1, 0, 0)
 end
 
 -- Método para atualização (lógica)
@@ -137,6 +152,7 @@ end
 function UIElement:addChild(child)
   table.insert(self.childs, child)
   child.parent = self
+  self.to_front = child
 
   if child.start then
     child:start()
@@ -144,6 +160,12 @@ function UIElement:addChild(child)
 
   self:markDirty() -- A interface mudou
   return child
+end
+
+function UIElement:bringToFront()
+  if self.parent then
+    self.parent.to_front = self
+  end
 end
 
 -- Remove um child
@@ -194,7 +216,15 @@ function UIElement:render()
 
   -- 3. Renderiza filhos
   for _, child in ipairs(self.childs) do
-    child:render()
+    if self.to_front then
+      if child.ID ~= self.to_front.ID then
+        child:render()
+      end
+    end
+  end
+
+  if self.to_front then
+    self.to_front:render()
   end
 end
 
@@ -316,7 +346,7 @@ function UIElement:dragTo(x, y)
   end
 end
 
----@return UiElement
+---@return UIElement
 function UIElement:beginDrag(mouseX, mouseY)
   local target = self.drag_taget and self.drag_taget or self
 
@@ -373,7 +403,7 @@ end
 function UIElement:watch_resize()
 end
 
----@return UiElement
+---@return UIElement
 function UIElement:startResize()
   local px, py = love.mouse.getPosition()
   self.resizing = true

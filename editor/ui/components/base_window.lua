@@ -36,6 +36,7 @@ local BaseWindow = function(w, h)
     print(self, event)
     print("Handle do elemento")
   end
+  close_button.texture = love.graphics.newImage("assets/close_icon.png")
 
   RoxEvents:register("close", close_button)
 
@@ -49,6 +50,8 @@ local BaseWindow = function(w, h)
       print("Pressed")
     end
   end)
+  minimize_button.texture = love.graphics.newImage("assets/minimize_icon.png")
+
 
   minimize_button.watch_resize = function(self)
     self.rect.x = self.parent.rect.width - ((self.rect.width + self.parent.style.padding) * 2)
@@ -61,6 +64,7 @@ local BaseWindow = function(w, h)
       print("Pressed")
     end
   end)
+  maximize_button.texture = love.graphics.newImage("assets/maximize_icon.png")
   maximize_button.watch_resize = function(self)
     self.rect.x = self.parent.rect.width - ((self.rect.width + self.parent.style.padding) * 3)
   end
@@ -72,8 +76,8 @@ local BaseWindow = function(w, h)
   end
 
   buttons_container:addChild(close_button)
-  buttons_container:addChild(minimize_button)
   buttons_container:addChild(maximize_button)
+  buttons_container:addChild(minimize_button)
   anchor_block:addChild(buttons_container)
 
 

@@ -59,10 +59,14 @@ function UiHandler:handleMouseClick(mousedata)
   end
 
   if focus and focus.transpass then
+    print("Transpass")
     while focus.transpass do
+      print("t")
       focus = focus.parent
     end
   end
+
+  focus:bringToFront()
 
   -- Resizing
   if focus ~= nil and focus.resizer_target then
@@ -81,7 +85,7 @@ function UiHandler:handleMouseClick(mousedata)
   end
 
   -- Change Focus
-  if focus ~= nil and focus.click then
+  if focus ~= nil and focus.click and focus.isClickable then
     if mousedata.pressed then
       focus:click(mousedata)
     else

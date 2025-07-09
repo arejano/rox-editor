@@ -9,6 +9,7 @@ function Text:new(text, rect, size, color)
   local element = UiElement:new(rect.x, rect.y, rect.width, rect.height)
   element.style.fg = color or element.style.fg
   element.style.font_size = size
+  element.transpass = true
 
   local data = {
     text = text
@@ -19,8 +20,6 @@ function Text:new(text, rect, size, color)
 
   element.draw = function(self)
     local oldFont = love.graphics.getFont()
-
-
 
     if not self.style.font then
       self.style.font = love.graphics.newFont(self.style.font_size or 12) -- Tamanho adequado
