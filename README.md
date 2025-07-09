@@ -9,6 +9,20 @@ Objetivos
 - UiHandler - Ponto principal para o controle da UI, recebe as acoes via RoxEditor ou Jogo
   - RoxEditorUi
     - Validar se eh possivel incliuir controle para nao evitar a propagacao de eventos (precisa de redraw de toda a tree de elementos se o pai delas mudar)
+-   
+
+
+- EventManager (receber dos componentes eventos que devem ser enviador para o Editor/Game/Interface)
+
+  
+- UIElement: Todo elemento em tela deve ser um UIElement
+  - caracteristicas
+    [x] elemento em tela deve ter um ID
+    . redimensionar
+    . recolher (efeito de exibir apenas a parra de titulo do elemento, se o elemento nao possui barra de titulo, ele nao pode ser recolhido)
+    . minimizar (enviar a janela para o local de items minimizados)
+    . auto-destruir
+-
 
 
 ### Concluido

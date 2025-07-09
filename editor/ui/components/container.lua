@@ -17,8 +17,6 @@ local Container = function(x, y, w, h)
   end
 
   element.start = function(self)
-    print("Start duplicado")
-    print(self.rect.y)
     _resize(self)
   end
 

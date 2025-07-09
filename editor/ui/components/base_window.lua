@@ -2,6 +2,7 @@ local UiElement = require "editor.ui_element"
 local TinyButton = require "editor.ui.components.tiny_button"
 local Resizer = require "editor.ui.components.resizer"
 local Row = require "editor.ui.components.row"
+local Text = require "editor.ui.components.text"
 
 local BaseWindow = function(w, h)
   local element = UiElement:new(250, 50, w, h)
@@ -17,6 +18,8 @@ local BaseWindow = function(w, h)
   anchor_block.style.padding = 4
   anchor_block.transpass = true
 
+  local window_title = Text:new(element.ID, { x = 0, y = 0, width = 10, height = 10 }, 18, { 0, 0, 0 })
+  anchor_block:addChild(window_title)
 
   anchor_block.draw = function(self)
     love.graphics.setColor(love.math.colorFromBytes(151, 187, 195))
@@ -26,9 +29,16 @@ local BaseWindow = function(w, h)
 
   local close_button = TinyButton:new({ x = 0, y = 0, width = 22, height = 22 }, function(self, mousedata)
     if mousedata.pressed then
-      print("Pressed")
+      RoxEvents:emit("close")
     end
   end)
+  close_button.handleEvent = function(self, event)
+    print(self, event)
+    print("Handle do elemento")
+  end
+
+  RoxEvents:register("close", close_button)
+
   close_button.watch_resize = function(self)
     self.rect.x = self.parent.rect.width - (self.rect.width + self.parent.style.padding)
   end
@@ -39,6 +49,7 @@ local BaseWindow = function(w, h)
       print("Pressed")
     end
   end)
+
   minimize_button.watch_resize = function(self)
     self.rect.x = self.parent.rect.width - ((self.rect.width + self.parent.style.padding) * 2)
   end

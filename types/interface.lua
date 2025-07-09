@@ -12,3 +12,5 @@
 ---@field fg {}number
 ---@field border {}number
 ---@field border_dragging {}number
+---@field font_size number
+---@field font any

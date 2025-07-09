@@ -1,9 +1,11 @@
 ---@class UiElement
+---@field ID string
 ---@field childs UiElement[]
 ---@field markDirty function
 ---@field startResize function
 ---@field endResize function
 ---@field onMouseLeave function
+---@field handleEvent function
 ---@field parent UiElement | nil
 ---@field canvas any
 ---@field rect Rect
@@ -30,13 +32,15 @@
 ---@field hasMouseFocus boolean
 ---@field isMouseOver boolean
 ---@field target UiElement | nil
-local UiElement = {
+local UIElement = {
+  ID = "",
   style = {
     padding         = 0,
     bg              = { 0, 0, 0 },
     fg              = { 1, 1, 1 },
     border          = { 151, 187, 195 },
     border_dragging = { 191, 32, 50 },
+    font_size       = 12,
   },
   resizable = false,
   resizing = false,
@@ -68,22 +72,23 @@ local UiElement = {
   data = nil,
   target = nil,
 }
-UiElement.__index = UiElement
+UIElement.__index = UIElement
 
-function UiElement:new(x, y, width, height)
-  local obj = setmetatable({}, UiElement)
-  obj.rect = { x = x or 0, y = y or 0, width = width or 100, height = height or 100 }
-  obj.canvas = love.graphics.newCanvas(obj.rect.width, obj.rect.height)
-  obj.childs = {}
-  obj.dirty = true
-  return obj
+function UIElement:new(x, y, width, height)
+  local self = {}
+  self.ID = newUUID()
+  self.rect = { x = x or 0, y = y or 0, width = width or 100, height = height or 100 }
+  self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
+  self.childs = {}
+  self.dirty = true
+  return setmetatable(self, UIElement)
 end
 
-function UiElement:start()
+function UIElement:start()
 end
 
 -- Método para obter posição absoluta (considerando hierarquia)
-function UiElement:getAbsolutePosition()
+function UIElement:getAbsolutePosition()
   if not self.parent then
     return self.rect.x, self.rect.y
   end
@@ -91,13 +96,13 @@ function UiElement:getAbsolutePosition()
   return parentX + self.rect.x, parentY + self.rect.y
 end
 
-function UiElement:forceRender()
+function UIElement:forceRender()
   self:markDirty()
 end
 
 -- Marca este elemento e todos os pais como necessitando renderização
 ---@param flag DirtyFlags
-function UiElement:markDirty()
+function UIElement:markDirty()
   self.dirty = true
 
   -- Propaga para os pais (para casos de clipping/overlap)
@@ -111,25 +116,25 @@ function UiElement:markDirty()
 end
 
 -- Método base para draw (deve ser sobrescrito pelas classes filhas)
-function UiElement:draw()
+function UIElement:draw()
   love.graphics.setColor(love.math.colorFromBytes(self.style.border))
   love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
 end
 
 -- Método para atualização (lógica)
-function UiElement:update(dt)
+function UIElement:update(dt)
   -- self.timeSinceLastRender = self.timeSinceLastRender + dt
   -- for _, child in ipairs(self.childs) do
   --   child:update(dt)
   -- end
 end
 
-function UiElement:teste(dt)
+function UIElement:teste(dt)
   -- Atualiza todos os children
 end
 
 -- Adiciona um child a este elemento
-function UiElement:addChild(child)
+function UIElement:addChild(child)
   table.insert(self.childs, child)
   child.parent = self
 
@@ -142,7 +147,7 @@ function UiElement:addChild(child)
 end
 
 -- Remove um child
-function UiElement:removeChild(child)
+function UIElement:removeChild(child)
   for i, c in ipairs(self.childs) do
     if c == child then
       table.remove(self.childs, i)
@@ -154,7 +159,7 @@ function UiElement:removeChild(child)
   return false
 end
 
-function UiElement:render()
+function UIElement:render()
   if not self.visible or self.alpha <= 0 then return end
 
   -- Recria o canvas se necessário (tamanho mudou ou não existe)
@@ -193,13 +198,13 @@ function UiElement:render()
   end
 end
 
-function UiElement:setCanvas(w, h)
+function UIElement:setCanvas(w, h)
   if self.canvas then self.canvas:release() end
   self.canvas = love.graphics.newCanvas(w, h)
   self.canvas:setFilter('nearest', 'nearest')
 end
 
-function UiElement:startCanvas()
+function UIElement:startCanvas()
   if self.canvas == nil then
     self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
     -- Configura o canvas para limpar completamente
@@ -212,14 +217,14 @@ function UiElement:startCanvas()
   love.graphics.setBlendMode('alpha')
 end
 
-function UiElement:updateLayout()
+function UIElement:updateLayout()
   for _, child in ipairs(self.childs) do
     child:updateLayout()
   end
 end
 
 ---@param rect Rect
-function UiElement:updateRect(rect)
+function UIElement:updateRect(rect)
   -- Verifica se as dimensões realmente mudaram
   if self.rect.width ~= rect.width or self.rect.height ~= rect.height then
     -- Libera o canvas existente se as dimensões mudaram
@@ -241,7 +246,7 @@ end
 
 ---@param w number
 ---@param h number
-function UiElement:updateSize(w, h)
+function UIElement:updateSize(w, h)
   self.rect.width = w
   self.rect.height = h
 
@@ -254,13 +259,13 @@ end
 
 ---@param w number
 ---@param h number
-function UiElement:updatePosition(x, y)
+function UIElement:updatePosition(x, y)
   self.rect.x = x
   self.rect.y = y
   self:markDirty()
 end
 
-function UiElement:manageMemory()
+function UIElement:manageMemory()
   -- Para elementos fora da tela/inativos
   if not self.visible or self.alpha == 0 then
     if self.canvas then
@@ -281,7 +286,7 @@ function UiElement:manageMemory()
   end
 end
 
-function UiElement:freeResources()
+function UIElement:freeResources()
   if self.canvas then
     self.canvas:release()
   end
@@ -291,40 +296,18 @@ function UiElement:freeResources()
   end
 end
 
-function UiElement:bindData(data)
+function UIElement:bindData(data)
   self.data = data
 end
 
-function UiElement:click()
+function UIElement:click()
   print("Click padrao do elemento")
 end
 
-function UiElement:drawText(text, x, y, size, color)
-  -- 1. Configurações ótimas para texto claro
-  local oldFont = love.graphics.getFont()
-
-  -- 2. Crie uma fonte dedicada se necessário
-  if not self.uiFont then
-    self.uiFont = love.graphics.newFont(size or 12) -- Tamanho adequado
-    self.uiFont:setFilter("nearest", "nearest")
-  end
-
-  -- 3. Aplica configurações
-  love.graphics.setFont(self.uiFont)
-  love.graphics.setColor(self.style.bg) -- Branco sólido
-
-  -- 4. Renderiza o texto com offsets inteiros para evitar borrão
-  local ix, iy = math.floor(x), math.floor(y)
-  love.graphics.print(text, ix, iy)
-
-  -- 5. Restaura configurações
-  love.graphics.setFont(oldFont)
+function UIElement:handleMouseMove()
 end
 
-function UiElement:handleMouseMove()
-end
-
-function UiElement:dragTo(x, y)
+function UIElement:dragTo(x, y)
   if self.dragOffsetX and self.dragOffsetY then
     local newX = x - self.dragOffsetX
     local newY = y - self.dragOffsetY
@@ -334,7 +317,7 @@ function UiElement:dragTo(x, y)
 end
 
 ---@return UiElement
-function UiElement:beginDrag(mouseX, mouseY)
+function UIElement:beginDrag(mouseX, mouseY)
   local target = self.drag_taget and self.drag_taget or self
 
   local ax, ay = target:getAbsolutePosition()
@@ -346,14 +329,14 @@ function UiElement:beginDrag(mouseX, mouseY)
   return self
 end
 
-function UiElement:endDrag()
+function UIElement:endDrag()
   local target = self.drag_taget and self.drag_taget or self
 
   target.dragging = false
   target:markDirty()
 end
 
-function UiElement:isMouseInsideInnerBounds(mx, my)
+function UIElement:isMouseInsideInnerBounds(mx, my)
   local ax, ay = self:getAbsolutePosition()
   local x1 = ax + 5
   local y1 = ay + 5
@@ -363,11 +346,11 @@ function UiElement:isMouseInsideInnerBounds(mx, my)
   return mx > x1 and mx < x2 and my > y1 and my < y2
 end
 
-function UiElement:focusOut()
+function UIElement:focusOut()
   self:endDrag()
 end
 
-function UiElement:resize(w, h)
+function UIElement:resize(w, h)
   if w > self.minWidth then
     self.rect.width = w
   end
@@ -379,7 +362,7 @@ function UiElement:resize(w, h)
   self:propagateResize()
 end
 
-function UiElement:propagateResize()
+function UIElement:propagateResize()
   for i, child in ipairs(self.childs) do
     if child.watch_resize then
       child:watch_resize()
@@ -387,11 +370,11 @@ function UiElement:propagateResize()
   end
 end
 
-function UiElement:watch_resize()
+function UIElement:watch_resize()
 end
 
 ---@return UiElement
-function UiElement:startResize()
+function UIElement:startResize()
   local px, py = love.mouse.getPosition()
   self.resizing = true
   self.resizeStartMouseX = px
@@ -401,17 +384,22 @@ function UiElement:startResize()
   return self
 end
 
-function UiElement:endResize()
+function UIElement:endResize()
   self.resizing = false
 end
 
-function UiElement:onMouseEnten()
+function UIElement:onMouseEnten()
 end
 
-function UiElement:onMouseLeave()
+function UIElement:onMouseLeave()
 end
 
-function UiElement:debug_box()
+function UIElement:handleEvent(event)
+  print("default handleEvent")
+  print(inspect(event))
+end
+
+function UIElement:debug_box()
   if self and self.debugging then
     if self.rect then
       love.graphics.setColor(0, 0, 0)
@@ -425,4 +413,4 @@ function UiElement:debug_box()
   end
 end
 
-return UiElement
+return UIElement

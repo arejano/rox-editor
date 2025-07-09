@@ -19,6 +19,7 @@ function love.load()
   debug_position()
 
   GlobalState = require 'global_state':new()
+  RoxEvents = require 'libs.rox-events':new()
 
   GlobalState:set("ui/theme", {
     primary = "#3498db",
