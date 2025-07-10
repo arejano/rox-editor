@@ -75,10 +75,11 @@ local BaseWindow = function(w, h)
   buttons_container.draw = function(self)
   end
 
+  -- O buttons container da lag ao fazer resize
   buttons_container:addChild(close_button)
   buttons_container:addChild(maximize_button)
   buttons_container:addChild(minimize_button)
-  anchor_block:addChild(buttons_container)
+  -- anchor_block:addChild(buttons_container)
 
 
   element.draw = function(self)

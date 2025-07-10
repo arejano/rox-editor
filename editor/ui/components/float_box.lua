@@ -20,7 +20,9 @@ local float_box = function(rect, props)
   local window = Window(w, h)
   local container = Container(0, 38, 10, 10)
 
+
   window:addChild(container)
+
 
   return window
 end

@@ -18,6 +18,8 @@ Editor = nil
 function love.load()
   -- debug_position()
 
+  -- love.mouse.setGrabbed(true) -- Tranca o mouse
+
   GlobalState = require 'global_state':new()
   RoxEvents = require 'libs.rox-events':new()
 

@@ -59,14 +59,14 @@ function UiHandler:handleMouseClick(mousedata)
   end
 
   if focus and focus.transpass then
-    print("Transpass")
     while focus.transpass do
-      print("t")
       focus = focus.parent
     end
   end
 
-  focus:bringToFront()
+  if focus.parent and mousedata.pressed then
+    focus.parent:newFocusOrder(focus.ID)
+  end
 
   -- Resizing
   if focus ~= nil and focus.resizer_target then
@@ -115,31 +115,45 @@ function UiHandler:getDeepestChildAtPosition(x, y)
       return nil
     end
 
-    -- Garante que ex e ey são números
+    -- Posição absoluta
     local absX, absY = element:getAbsolutePosition()
     local ex, ey = tonumber(absX), tonumber(absY)
     local w, h = tonumber(element.rect.width), tonumber(element.rect.height)
 
-    -- Verificação adicional de tipos
-    if type(ex) ~= "number" or type(ey) ~= "number" or
-        type(w) ~= "number" or type(h) ~= "number" then
+    if type(ex) ~= "number" or type(ey) ~= "number" or type(w) ~= "number" or type(h) ~= "number" then
       print("Erro: Valores inválidos para elemento " .. tostring(element.name))
-      print("ex:", ex, "ey:", ey, "w:", w, "h:", h)
       return nil
     end
 
-    -- Verifica se o ponto está dentro do elemento (agora seguro)
+    -- Se o ponto (x, y) está dentro do elemento
     if x >= ex and x <= ex + w and y >= ey and y <= ey + h then
-      -- Procura por filhos mais profundos (ordem inversa)
-      for i = #element.childs, 1, -1 do
-        local child = element.childs[i]
-        local found = findDeepest(child)
-        if found then
-          return found
+      -- Verifica filhos pela ordem de renderização (de cima para baixo)
+      if element.render_order then
+        for i = #element.render_order, 1, -1 do
+          local child_id = element.render_order[i]
+          local child_idx = element.childs_render and element.childs_render[child_id]
+          local child = child_idx and element.childs[child_idx]
+
+          if child then
+            local found = findDeepest(child)
+            if found then
+              return found
+            end
+          end
+        end
+      else
+        -- fallback (se não houver render_order)
+        for i = #element.childs, 1, -1 do
+          local found = findDeepest(element.childs[i])
+          if found then
+            return found
+          end
         end
       end
+
       return element
     end
+
     return nil
   end
 
@@ -215,6 +229,16 @@ function UiHandler:render()
   else
     self.rootElement:render()
   end
+
+  -- self:inspect()
+end
+
+function UiHandler:inspect()
+  -- local root_childs = self.rootElement:getChildIds()
+
+  -- for i, id in ipairs(root_childs) do
+  --   love.graphics.print(id, 10, 20 * i)
+  -- end
 end
 
 -- Adiciona um elemento na raiz

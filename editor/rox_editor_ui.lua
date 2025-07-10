@@ -2,6 +2,7 @@ local UiHandler = require "editor.ui_handler"
 local UiElement = require "editor.ui_element"
 local FloatPanel = require 'editor.ui.components.float_panel'
 local Fps = require 'editor.ui.components.fps'
+local Resizer = require "editor.ui.components.resizer"
 
 local FloatBox = require 'editor.ui.components.float_box'
 local Rect = require "editor.ui.rect"
@@ -12,23 +13,25 @@ editor_ui.rootElement = UiElement:new(0, 0, love.graphics.getWidth(), love.graph
 editor_ui.rootElement.name = "RootElement"
 editor_ui.rootElement.draw = function(_) end
 
-local float_box = FloatBox(Rect.box(300, 300), nil)
+local float_box = FloatBox(Rect.box(800, 500), nil)
 
 editor_ui.rootElement:addChild(float_box)
-editor_ui.rootElement:addChild(FloatBox({ x = 10, y = 10, width = 200, height = 200 }, nil))
-editor_ui.rootElement:addChild(FloatBox({ x = 100, y = 10, width = 200, height = 200 }, nil))
-editor_ui.rootElement:addChild(FloatBox({ x = 200, y = 10, width = 200, height = 200 }, nil))
-editor_ui.rootElement:addChild(FloatBox({ x = 300, y = 10, width = 200, height = 200 }, nil))
+-- editor_ui.rootElement:addChild(FloatBox({ x = 10, y = 10, width = 200, height = 200 }, nil))
+-- editor_ui.rootElement:addChild(FloatBox({ x = 100, y = 10, width = 200, height = 200 }, nil))
+-- editor_ui.rootElement:addChild(FloatBox({ x = 200, y = 10, width = 200, height = 200 }, nil))
+-- editor_ui.rootElement:addChild(FloatBox({ x = 300, y = 10, width = 200, height = 200 }, nil))
 editor_ui.rootElement:addChild(Fps)
 
 local image_card = love.graphics.newImage("assets/joker_card.png")
-local card = UiElement:new(0, 0, image_card:getWidth(), image_card:getHeight())
+local card = UiElement:new(200, 100, image_card:getWidth(), image_card:getHeight())
+card.name = "Coringa"
 card.texture = image_card
 card.isDragable = true
 
 local image_mago = love.graphics.newImage("assets/mago_negro.jpg")
-local mago = UiElement:new(0, 0, image_mago:getWidth(), image_mago:getHeight())
+local mago = UiElement:new(700, 100, image_mago:getWidth(), image_mago:getHeight())
 mago.texture = image_mago
+mago.name = "Mago"
 mago.isDragable = true
 
 editor_ui.rootElement:addChild(card)
