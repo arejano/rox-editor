@@ -1,41 +1,81 @@
 local UiHandler = require "editor.ui_handler"
-local UiElement = require "editor.ui_element"
-local FloatPanel = require 'editor.ui.components.float_panel'
+local UIElement = require "editor.ui_element"
 local Fps = require 'editor.ui.components.fps'
 local Resizer = require "editor.ui.components.resizer"
+local Row = require "editor.ui.components.row"
 
 local FloatBox = require 'editor.ui.components.float_box'
 local Rect = require "editor.ui.rect"
 
 local editor_ui = UiHandler:new();
 
-editor_ui.rootElement = UiElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+editor_ui.rootElement = UIElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 editor_ui.rootElement.name = "RootElement"
-editor_ui.rootElement.draw = function(_) end
 
-local float_box = FloatBox(Rect.box(800, 500), nil)
+editor_ui.rootElement.draw = function(self)
+  love.graphics.setColor(love.math.colorFromBytes(70, 71, 74))
+  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+end
 
-editor_ui.rootElement:addChild(float_box)
--- editor_ui.rootElement:addChild(FloatBox({ x = 10, y = 10, width = 200, height = 200 }, nil))
--- editor_ui.rootElement:addChild(FloatBox({ x = 100, y = 10, width = 200, height = 200 }, nil))
--- editor_ui.rootElement:addChild(FloatBox({ x = 200, y = 10, width = 200, height = 200 }, nil))
--- editor_ui.rootElement:addChild(FloatBox({ x = 300, y = 10, width = 200, height = 200 }, nil))
-editor_ui.rootElement:addChild(Fps)
+-- editor_ui.rootElement:addChild(Fps)
+editor_ui.rootElement:addChild(require "editor.ui.blocks.top_panel")
+-- editor_ui.rootElement:addChild(require "editor.ui.blocks.tool_panel")
+-- editor_ui.rootElement:addChild(require "editor.ui.blocks.central_viewer")
+-- editor_ui.rootElement:addChild(require "editor.ui.blocks.right_panel")
 
-local image_card = love.graphics.newImage("assets/joker_card.png")
-local card = UiElement:new(200, 100, image_card:getWidth(), image_card:getHeight())
-card.name = "Coringa"
-card.texture = image_card
-card.isDragable = true
+local main_row = Row:new(0, 45, 200, 200)
+main_row.watch_resize = function(self)
+  self.rect.x = 0
+  self:horizontal_resize_childs()
+  self:vertical_resize_childs()
+end
 
-local image_mago = love.graphics.newImage("assets/mago_negro.jpg")
-local mago = UiElement:new(700, 100, image_mago:getWidth(), image_mago:getHeight())
-mago.texture = image_mago
-mago.name = "Mago"
-mago.isDragable = true
 
-editor_ui.rootElement:addChild(card)
-editor_ui.rootElement:addChild(mago)
+
+local red = UIElement:new(0, 0, 100, 100)
+
+red.draw = function(self, color)
+  love.graphics.setColor(love.math.colorFromBytes({ 250, 121, 112 }))
+  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+  love.graphics.setColor(0, 0, 0)
+  love.graphics.print("width: " .. self.rect.width, 10, 10)
+  love.graphics.print("x: " .. self.rect.x .. "_ y: " .. self.rect.y, 10, 30)
+  print("Fuck")
+end
+
+local blue = UIElement:new(0, 0, 100, 100)
+blue.draw = function(self, color)
+  love.graphics.setColor(love.math.colorFromBytes({ 38, 159, 212 }))
+  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+  love.graphics.setColor(0, 0, 0)
+  love.graphics.print("width: " .. self.rect.width, 10, 10)
+  love.graphics.print("x: " .. self.rect.x .. "_ y: " .. self.rect.y, 10, 30)
+  print("Fuck")
+end
+
+local green = UIElement:new(0, 0, 100, 100)
+green.draw = function(self, color)
+  love.graphics.setColor(love.math.colorFromBytes({ 30, 216, 96 }))
+  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+  love.graphics.setColor(0, 0, 0)
+  love.graphics.print("width: " .. self.rect.width, 10, 10)
+  love.graphics.print("x: " .. self.rect.x .. "_ y: " .. self.rect.y, 10, 30)
+  -- love.graphics.print("timeSinceLastDraw: " .. self.timeSinceLastDraw, 10, 50)
+  print("Fuck")
+end
+
+
+main_row:addChild(blue)
+-- main_row:addChild(red)
+main_row:addChild(green)
+main_row.target_fps = 2
+
+editor_ui.rootElement:addChild(main_row)
+
+local fps = Fps
+fps.rect.y = 4
+fps.rect.x = 4
+editor_ui.rootElement:addChild(fps)
 
 editor_ui.rootElement.canvas = nil
 

@@ -39,6 +39,19 @@ function UiHandler:update(dt)
 end
 
 ---------------------------------------------------------Mouse
+
+function UiHandler:cancelDragAnResize()
+  if self.elementOnResizing then
+    self.elementOnResizing:endResize()
+    self.elementOnResizing = nil
+  end
+
+  if self.elementOnDragging then
+    self.elementOnDragging:endDrag()
+    self.elementOnDragging = nil
+  end
+end
+
 ---@param mousedata  MouseClickData
 function UiHandler:handleMouseClick(mousedata)
   if self.stopped then return end
@@ -47,15 +60,7 @@ function UiHandler:handleMouseClick(mousedata)
 
   -- Cancel Dragging and Resize
   if mousedata.release then
-    if self.elementOnResizing then
-      self.elementOnResizing:endResize()
-      self.elementOnResizing = nil
-    end
-
-    if self.elementOnDragging then
-      self.elementOnDragging:endDrag()
-      self.elementOnDragging = nil
-    end
+    cancelDragAndResize()
   end
 
   if focus and focus.transpass then
@@ -208,7 +213,7 @@ end
 function UiHandler:resize()
   local w, h = love.graphics.getDimensions()
 
-  if w < 600 or h < 400 then
+  if w < 200 or h < 200 then
     self.stopped = true
     return
   else

@@ -1,3 +1,5 @@
+local utils = require "utils"
+
 local WindowManager = {
   size = {
     width = 0,
@@ -15,7 +17,7 @@ function WindowManager:init()
 end
 
 function WindowManager:update_size()
-  local w, h       = GetWindowSize()
+  local w, h       = utils.GetWindowSize()
   self.size.width  = w
   self.size.height = h
 end

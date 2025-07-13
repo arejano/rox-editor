@@ -1,4 +1,5 @@
 local UiElement = require "editor.ui_element"
+local utils = require'utils'
 
 local OutOffSize = {}
 OutOffSize.__index = OutOffSize
@@ -7,7 +8,7 @@ function OutOffSize:new()
   local uiOutOffSizeElement = UiElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
   uiOutOffSizeElement.name = "OutOffSizeElement"
   uiOutOffSizeElement.draw = function(_)
-    local w, h = GetWindowSize()
+    local w, h = utils.GetWindowSize()
     love.graphics.clear()
     -- love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, w, h)

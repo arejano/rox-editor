@@ -1,16 +1,11 @@
-dofile("globals.lua")
-
-
-local ball = {
-  x = 400,
-  y = 300,
-  radius = 10,
-  speedX = 200,
-  speedY = 150
-}
-
-local WindowManager = require "window_manager"
+-- local WindowManager = require "window_manager"
 local RoxEditor = require "editor.rox_editor"
+
+_G.main_rects = {
+  tool_panel = { x = 40, y = 0, width = 300, height = 1000 },
+  right_panel = { x = 40, y = 0, width = 300, height = 1000 },
+  top_panel = { x = 0, y = 0, width = 100, height = 40 },
+}
 
 ---@type RoxEditor
 Editor = nil
@@ -28,13 +23,13 @@ function love.load()
     secondary = "#FFFFFF",
   })
 
-  WindowManager:init()
+  -- WindowManager:init()
   Editor = RoxEditor:new()
 end
 
 ---@param focus boolean
 function love.focus(focus)
-  WindowManager:update_focus(focus)
+  -- WindowManager:update_focus(focus)
 end
 
 function love.update(dt)
@@ -92,15 +87,15 @@ end
 
 ---@param focus boolean
 function love.mousefocus(focus)
-  WindowManager:update_focus(focus)
+  -- WindowManager:update_focus(focus)
 end
 
 function love.wheelmoved(x, y)
-  WindowManager:update_focus(focus)
+  -- WindowManager:update_focus(focus)
 end
 
 function love.resize()
-  WindowManager:update_size()
+  -- WindowManager:update_size()
   Editor:resize();
   Editor.ui_handler:markDirty("Full")
 end

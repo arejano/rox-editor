@@ -1,3 +1,5 @@
+local utils = require "utils"
+
 ---@class UIElement
 ---@field ID string
 ---@field childs UIElement[]
@@ -36,7 +38,10 @@
 ---@field texture any
 ---@field index number
 ---@field render_order []string
+---@field target_fps number
+---@field timeSinceLastDraw number
 local UIElement = {
+  target_fps = 60,
   ID = "",
   style = {
     padding         = 0,
@@ -78,13 +83,14 @@ local UIElement = {
   target = nil,
   texture = nil,
   index = 0,
-  render_order = {}
+  render_order = {},
+  timeSinceLastDraw = 0,
 }
 UIElement.__index = UIElement
 
 function UIElement:new(x, y, width, height)
   local self = {}
-  self.ID = newUUID()
+  self.ID = utils.newUUID()
   self.rect = { x = x or 0, y = y or 0, width = width or 100, height = height or 100 }
   self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
   self.childs = {}
@@ -129,8 +135,8 @@ function UIElement:draw()
     return
   end
 
-  love.graphics.setColor(love.math.colorFromBytes(self.style.border))
-  love.graphics.rectangle("line", 0, 0, self.rect.width, self.rect.height)
+  love.graphics.setColor(love.math.colorFromBytes(self.style.bg))
+  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
 end
 
 function UIElement:drawTexture()
@@ -234,6 +240,22 @@ end
 function UIElement:render()
   if not self.visible or self.alpha <= 0 then return end
 
+
+  local now = love.timer.getTime()
+  local fps = self.target_fps or 60
+  local interval = 1 / fps
+
+
+  -- if self.dirty and (now - self.timeSinceLastDraw) < interval then
+  --   print("ERRO!")
+  --   return
+  -- end
+
+  if self.rect.width <= 0 or self.rect.height <= 0 then
+    -- print(self.rect.width, self.rect.height)
+    return
+  end
+
   -- Recria o canvas se necessário (tamanho mudou ou não existe)
   if not self.canvas or
       self.canvas:getWidth() ~= self.rect.width or
@@ -253,6 +275,9 @@ function UIElement:render()
     -- Aplica o alpha global do elemento
     local r, g, b, a = love.graphics.getColor()
     love.graphics.setColor(1, 1, 1, self.alpha)
+
+    -- self.timeSinceLastDraw = now
+    print("wow")
     self:draw()
     -- self:debug_box()
     love.graphics.setColor(r, g, b, a)
@@ -328,11 +353,11 @@ function UIElement:updateSize(w, h)
   self.rect.width = w
   self.rect.height = h
 
-  if self.parent then
-    self.parent:markDirty()
-  end
+  -- if self.parent then
+  --   self.parent:markDirty()
+  -- end
 
-  self:propagateResize()
+  -- self:propagateResize()
 end
 
 ---@param x number
@@ -440,13 +465,13 @@ function UIElement:focusOut()
 end
 
 function UIElement:resize(w, h)
-  -- if w > self.minWidth then
-  --   self.rect.width = w
-  -- end
+  if w > self.minWidth then
+    self.rect.width = w
+  end
 
-  -- if h > self.minHeight then
-  --   self.rect.height = h
-  -- end
+  if h > self.minHeight then
+    self.rect.height = h
+  end
 
   -- self:propagateResize()
 end
@@ -477,7 +502,7 @@ function UIElement:endResize()
   self.resizing = false
 end
 
-function UIElement:onMouseEnten()
+function UIElement:onMouseEnter()
 end
 
 function UIElement:onMouseLeave()
@@ -541,8 +566,6 @@ function UIElement:getChildIds()
 end
 
 function UIElement:newFocusOrder(child_id)
-  print("New Focus Order")
-
   for i, v in ipairs(self.render_order) do
     if v == child_id then
       table.remove(self.render_order, i)
@@ -550,6 +573,51 @@ function UIElement:newFocusOrder(child_id)
       break
     end
   end
+end
+
+function UIElement:horizontal_resize_childs()
+  local parent = self.parent
+  if not parent then return end
+
+  local padding = parent.style.padding or 0
+  local innerWidth = parent.rect.width - (padding * 2)
+  self.rect.width = innerWidth
+
+  local childCount = #self.childs
+  if childCount == 0 then return end
+
+  local splitSize = innerWidth / childCount
+  local innerHeight = self.rect.height - (self.style.padding * 2)
+
+  for i, child in ipairs(self.childs) do
+    local offset = (splitSize * (i - 1)) + self.style.padding
+    child.rect.x = offset
+    child.rect.y = self.style.padding
+    child:updateSize(splitSize - (self.style.padding * 2), innerHeight)
+  end
+end
+
+function UIElement:vertical_resize_childs()
+  print(#self.parent.childs)
+  -- local parent = self.parent
+  -- if not parent then return end
+
+  -- local padding = parent.style.padding or 0
+  -- local innerWidth = parent.rect.width - (padding * 2)
+  -- self.rect.width = innerWidth
+
+  -- local childCount = #self.childs
+  -- if childCount == 0 then return end
+
+  -- local splitSize = innerWidth / childCount
+  -- local innerHeight = self.rect.height - (self.style.padding * 2)
+
+  -- for i, child in ipairs(self.childs) do
+  --   local offset = (splitSize * (i - 1)) + self.style.padding
+  --   child.rect.x = offset
+  --   child.rect.y = self.style.padding
+  --   child:updateSize(splitSize - (self.style.padding * 2), innerHeight)
+  -- end
 end
 
 return UIElement
