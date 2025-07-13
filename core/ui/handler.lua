@@ -1,16 +1,13 @@
-local UiElement = require "editor.ui_element"
-local OutOffSize = require "editor.ui.blocks.out_space_error"
+local UIElement = require "core.ui.element"
 
----@class UiHandler
----@field rootElement UiElement | nil
----@field uiOutOffSizeElement UiElement | nil
+---@class UIHandler
+---@field rootElement UIElement | nil
 ---@field addElement function
 ---@field stopped boolean
----@field elementOnMouseFocus UiElement | nil
----@field elementOnDragging UiElement | nil
+---@field elementOnMouseFocus UIElement | nil
+---@field elementOnDragging UIElement | nil
 local UiHandler = {
   rootElement = nil,
-  uiOutOffSizeElement = nil,
   stopped = false,
   elementOnMouseFocus = nil,
   elementOnDragging = nil,
@@ -23,7 +20,6 @@ function UiHandler:new()
   obj.elementOnMouseFocus = nil
   obj.previousMouseFocus = nil
 
-  obj.uiOutOffSizeElement = OutOffSize:new()
 
   return obj
 end
@@ -40,7 +36,7 @@ end
 
 ---------------------------------------------------------Mouse
 
-function UiHandler:cancelDragAnResize()
+function UiHandler:cancelDragAndResize()
   if self.elementOnResizing then
     self.elementOnResizing:endResize()
     self.elementOnResizing = nil
@@ -60,7 +56,7 @@ function UiHandler:handleMouseClick(mousedata)
 
   -- Cancel Dragging and Resize
   if mousedata.release then
-    cancelDragAndResize()
+    self:cancelDragAndResize()
   end
 
   if focus and focus.transpass then
@@ -222,7 +218,6 @@ function UiHandler:resize()
 
   -- Atualiza o root element
   self.rootElement:updateRect({ x = 0, y = 0, width = w, height = h })
-  self.uiOutOffSizeElement:updateRect({ x = 0, y = 0, width = w, height = h })
 
   self.rootElement:resize(w, h)
 end
@@ -230,7 +225,6 @@ end
 -- Renderiza toda a UI
 function UiHandler:render()
   if self.stopped then
-    self.uiOutOffSizeElement:render()
   else
     self.rootElement:render()
   end

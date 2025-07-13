@@ -1,9 +1,9 @@
-local UiElement = require "editor.ui_element"
+local UIElement = require "core.ui.element"
 
 local Row = {}
 
 function Row:new(x, y, w, h)
-  local element = UiElement:new(x, y, w, h)
+  local element = UIElement:new(x, y, w, h)
 
   element.draw = function()
     print("row!!!!")

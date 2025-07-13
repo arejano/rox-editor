@@ -1,5 +1,5 @@
 -- local WindowManager = require "window_manager"
-local RoxEditor = require "editor.rox_editor"
+local Editor = require "editor.editor"
 
 _G.main_rects = {
   tool_panel = { x = 40, y = 0, width = 300, height = 1000 },
@@ -8,23 +8,23 @@ _G.main_rects = {
 }
 
 ---@type RoxEditor
-Editor = nil
+Editor = Editor:new()
 
 function love.load()
   -- debug_position()
 
   -- love.mouse.setGrabbed(true) -- Tranca o mouse
 
-  GlobalState = require 'global_state':new()
-  RoxEvents = require 'libs.rox-events':new()
+  -- GlobalState = require 'global_state':new()
+  -- RoxEvents = require 'libs.rox-events':new()
 
-  GlobalState:set("ui/theme", {
-    primary = "#3498db",
-    secondary = "#FFFFFF",
-  })
+  -- GlobalState:set("ui/theme", {
+  -- primary = "#3498db",
+  -- secondary = "#FFFFFF",
+  -- })
 
   -- WindowManager:init()
-  Editor = RoxEditor:new()
+  -- Editor = Editor:new()
 end
 
 ---@param focus boolean

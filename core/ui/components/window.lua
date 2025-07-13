@@ -1,8 +1,7 @@
-local UIElement = require "editor.ui_element"
-local TinyButton = require "editor.ui.components.tiny_button"
-local Resizer = require "editor.ui.components.resizer"
-local Row = require "editor.ui.components.row"
-local Text = require "editor.ui.components.text"
+local UIElement = require "core.ui.element"
+-- local Resizer = require "editor.ui.components.resizer"
+-- local Row = require "editor.ui.components.row"
+-- local Text = require "editor.ui.components.text"
 
 local Window = {}
 Window.__index = Window

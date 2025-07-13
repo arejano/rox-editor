@@ -1,4 +1,4 @@
-local utils = require "utils"
+local utils = require "core.utils"
 
 ---@class UIElement
 ---@field ID string

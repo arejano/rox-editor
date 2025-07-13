@@ -1,5 +1,5 @@
-local UIElement = require "editor.ui_element"
-local Window = require 'editor.ui.components.window'
+local Window = require 'core.ui.components.window'
+local UIElement = require "core.ui.element"
 
 local element = Window:new()
 element.isDragable = true

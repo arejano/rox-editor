@@ -1,11 +1,11 @@
-local UiHandler = require "editor.ui_handler"
-local UIElement = require "editor.ui_element"
-local Fps = require 'editor.ui.components.fps'
-local Resizer = require "editor.ui.components.resizer"
-local Row = require "editor.ui.components.row"
+local UiHandler = require "core.ui.handler"
+local UIElement = require "core.ui.element"
+local Fps = require 'core.ui.components.fps'
+-- local Resizer = require "editor.ui.components.resizer"
+local Row = require "core.ui.components.row"
 
-local FloatBox = require 'editor.ui.components.float_box'
-local Rect = require "editor.ui.rect"
+-- local FloatBox = require 'editor.ui.components.float_box'
+-- local Rect = require "editor.ui.rect"
 
 local editor_ui = UiHandler:new();
 
@@ -18,7 +18,7 @@ editor_ui.rootElement.draw = function(self)
 end
 
 -- editor_ui.rootElement:addChild(Fps)
-editor_ui.rootElement:addChild(require "editor.ui.blocks.top_panel")
+-- editor_ui.rootElement:addChild(require "editor.ui.blocks.top_panel")
 -- editor_ui.rootElement:addChild(require "editor.ui.blocks.tool_panel")
 -- editor_ui.rootElement:addChild(require "editor.ui.blocks.central_viewer")
 -- editor_ui.rootElement:addChild(require "editor.ui.blocks.right_panel")

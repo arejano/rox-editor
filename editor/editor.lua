@@ -1,7 +1,5 @@
-local UiHandler = require "editor.ui_handler"
-local UiElement = require "editor.ui_element"
-
-local ResizeMode = require "editor.enum_resize_mode"
+local UIHandler = require "core.ui.handler"
+local UIElement = require "core.ui.element"
 
 ---@class RoxEditor
 ---@field draw function
@@ -16,7 +14,7 @@ RoxEditor.__index = RoxEditor
 
 function RoxEditor:new()
   local obj = setmetatable({}, RoxEditor)
-  obj.ui_handler = require 'editor.rox_editor_ui'
+  obj.ui_handler = require 'editor.ui.editor_ui'
   return obj;
 end
 
