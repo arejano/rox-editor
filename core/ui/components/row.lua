@@ -8,7 +8,8 @@ function Row:new(x, y, w, h)
 
   element.draw         = function(self)
     print("Row:draw")
-    love.graphics.setColor(love.math.colorFromBytes({ 38, 159, 212 }))
+    print(self.style.padding)
+    love.graphics.setColor(love.math.colorFromBytes({ 223, 88, 24 }))
     love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
   end
 

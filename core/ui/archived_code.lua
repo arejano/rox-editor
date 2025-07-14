@@ -28,4 +28,3 @@ function UIElement:freeResources()
     child:freeResources()
   end
 end
-

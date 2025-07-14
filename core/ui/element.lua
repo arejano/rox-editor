@@ -19,6 +19,8 @@ local utils = require "core.utils"
 ---@field draw function
 ---@field minWidth number
 ---@field minHeight number
+---@field maxWidth number
+---@field maxHeight number
 ---@field isClickable boolean
 ---@field isDragable boolean
 ---@field dragging boolean
@@ -91,13 +93,16 @@ local UIElement = {
 UIElement.__index = UIElement
 
 function UIElement:new(x, y, width, height)
-  local self = {}
+  local self = setmetatable({}, UIElement)
   self.ID = utils.newUUID()
   self.rect = { x = x or 0, y = y or 0, width = width or 100, height = height or 100 }
   self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
   self.childs = {}
   self.dirty = true
-  return setmetatable(self, UIElement)
+
+  self.style = utils.deepCopy(UIElement.style)
+
+  return self
 end
 
 function UIElement:start()
@@ -149,6 +154,13 @@ function UIElement:update(_)
   -- for _, child in ipairs(self.childs) do
   --   child:update(dt)
   -- end
+end
+
+function UIElement:addChilds(...)
+  for i, v in ipairs(...) do
+    print("Wow")
+    seld:addChild(v)
+  end
 end
 
 -- Adiciona um child a este elemento
@@ -262,9 +274,9 @@ function UIElement:render()
 
     self:draw()
     love.graphics.setColor(r, g, b, a)
+    self.dirty = false
 
     love.graphics.setCanvas()
-    self.dirty = false
   end
 
   -- 2. Desenha o canvas na tela
@@ -527,7 +539,7 @@ function UIElement:horizontal_resize_childs()
   if not parent then return end
 
   local padding = parent.style.padding or 0
-  local innerWidth = parent.rect.width - (padding * 2)
+  local innerWidth = parent.rect.width - (self.parent.style.padding * 2)
   self.rect.width = innerWidth
 
   local childCount = #self.childs
@@ -546,25 +558,6 @@ end
 
 function UIElement:vertical_resize_childs()
   print(#self.parent.childs)
-  -- local parent = self.parent
-  -- if not parent then return end
-
-  -- local padding = parent.style.padding or 0
-  -- local innerWidth = parent.rect.width - (padding * 2)
-  -- self.rect.width = innerWidth
-
-  -- local childCount = #self.childs
-  -- if childCount == 0 then return end
-
-  -- local splitSize = innerWidth / childCount
-  -- local innerHeight = self.rect.height - (self.style.padding * 2)
-
-  -- for i, child in ipairs(self.childs) do
-  --   local offset = (splitSize * (i - 1)) + self.style.padding
-  --   child.rect.x = offset
-  --   child.rect.y = self.style.padding
-  --   child:updateSize(splitSize - (self.style.padding * 2), innerHeight)
-  -- end
 end
 
 return UIElement

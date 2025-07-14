@@ -33,6 +33,8 @@ function UIHandler:update(dt)
   -- local deepestChild = self:getDeepestChildAtPosition(x, y)
   -- if self.elementOnMouseFocus == nil then return end
   -- self.elementOnMouseFocus:update(dt)
+
+  -- Para childs que
 end
 
 function UIHandler:cancelDragAndResize(relese)
@@ -187,7 +189,7 @@ function UIHandler:updateFocus(newFocus)
 
     -- Propaga para cima na hierarquia (opcional)
     self:propagateMouseOver(newFocus)
-    -- newFocus:markDirty()
+    newFocus:markDirty()
   end
 end
 

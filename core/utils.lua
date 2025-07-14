@@ -98,4 +98,26 @@ function utils.isInvalidResize(w, h, minWidth, minHeight)
   return w < minWidth or h < minHeight
 end
 
+function utils.deepCopy(orig, copies)
+  copies = copies or {}
+
+  if type(orig) ~= 'table' then
+    return orig
+  elseif copies[orig] then
+    return copies[orig] -- evita loops infinitos em tabelas recursivas
+  end
+
+  local copy = {}
+  copies[orig] = copy
+
+  for k, v in pairs(orig) do
+    copy[utils.deepCopy(k, copies)] = utils.deepCopy(v, copies)
+  end
+
+  -- copia o metatable, se houver
+  setmetatable(copy, utils.deepCopy(getmetatable(orig), copies))
+
+  return copy
+end
+
 return utils

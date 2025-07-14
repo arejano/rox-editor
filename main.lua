@@ -15,6 +15,7 @@ function love.focus(focus)
 end
 
 function love.update(dt)
+  Editor:update(dt)
 end
 
 function love.draw()
