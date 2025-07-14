@@ -25,7 +25,6 @@ red.name = "Red"
 red.isDragable = true
 
 red.draw = function(self, color)
-  print("erooooo")
   love.graphics.setColor(love.math.colorFromBytes({ 250, 121, 112 }))
   love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
   love.graphics.setColor(0, 0, 0)
@@ -54,7 +53,19 @@ end
 
 
 main_row:addChild(red)
+main_row:addChild(blue)
 main_row:addChild(green)
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
+main_row:addChild(UIElement:new(0, 0, 100, 100))
 main_row.target_fps = 2
 
 editor_ui.rootElement:addChild(main_row)

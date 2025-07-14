@@ -122,7 +122,7 @@ function UIElement:markDirty()
   -- end
 
   for _, c in ipairs(self.childs) do
-    -- c:markDirty()
+    c:markDirty()
   end
 end
 
@@ -163,7 +163,7 @@ function UIElement:addChild(child)
     child:start()
   end
 
-  -- self:markDirty() -- A interface mudou
+  self:markDirty() -- A interface mudou
   return child
 end
 
@@ -179,7 +179,7 @@ function UIElement:removeChild(child)
     if c == child then
       table.remove(self.childs, i)
       child.parent = nil
-      -- self:markDirty()
+      self:markDirty()
       return true
     end
   end
@@ -242,15 +242,13 @@ function UIElement:render()
   local fps = self.target_fps or 60
   local interval = 1 / fps
 
-  -- Recria o canvas se necessário (tamanho mudou ou não existe)
   if not self.canvas or
-      self.canvas:getWidth() ~= self.rect.width or
-      self.canvas:getHeight() ~= self.rect.height then
+      self.canvas:getWidth() ~= math.floor(self.rect.width) or
+      self.canvas:getHeight() ~= math.floor(self.rect.height) then
     if self.canvas then self.canvas:release() end
 
-
     self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
-    self.dirty = true -- Força redesenho
+    self.dirty = true
   end
 
   -- 1. Renderiza no canvas se dirty
@@ -327,7 +325,7 @@ function UIElement:updateRect(rect)
   -- TODO: Isso precisa ser reavalido
   -- Marca os pais como dirty para garantir que a hierarquia seja atualizada
   if self.parent then
-    -- self.parent:markDirty()
+    self.parent:markDirty()
   end
 end
 
@@ -348,7 +346,7 @@ end
 function UIElement:updatePosition(x, y)
   self.rect.x = x
   self.rect.y = y
-  -- self:markDirty()
+  self:markDirty()
 end
 
 function UIElement:bindData(data)
@@ -387,14 +385,14 @@ function UIElement:beginDrag(mouseX, mouseY)
   target.dragOffsetX = mouseX - ax
   target.dragOffsetY = mouseY - ay
   target.dragging = true
-  -- target:markDirty()
+  target:markDirty()
   return self
 end
 
 function UIElement:endDrag(automatic)
   local target = self.drag_taget and self.drag_taget or self
   target.dragging = false
-  -- target:markDirty()
+  target:markDirty()
 end
 
 function UIElement:isMouseInsideInnerBounds(mx, my)
