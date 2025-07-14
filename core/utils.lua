@@ -85,4 +85,17 @@ function utils.deepCompare(a, b)
   return true
 end
 
+function utils.debug_position()
+  local w, h, target = utils.GetDisplayInfo()
+  love.window.setMode(
+    w,
+    h,
+    { display = target, resizable = true }
+  )
+end
+
+function utils.isInvalidResize(w, h, minWidth, minHeight)
+  return w < minWidth or h < minHeight
+end
+
 return utils

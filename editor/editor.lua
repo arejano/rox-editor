@@ -3,14 +3,11 @@ local UIElement = require "core.ui.element"
 
 ---@class RoxEditor
 ---@field draw function
----@field markDirty function
----@field ui_handler UiHandler | nil
+---@field ui_handler UIHandler | nil
 local RoxEditor = {
   ui_handler = nil,
 }
-
 RoxEditor.__index = RoxEditor
-
 
 function RoxEditor:new()
   local obj = setmetatable({}, RoxEditor)
@@ -37,11 +34,18 @@ function RoxEditor:draw()
 end
 
 function RoxEditor:update(dt)
-  self.ui_handler:update(dt)
+  -- self.ui_handler:update(dt)
 end
 
-function RoxEditor:resize()
-  self.ui_handler:resize();
+---@param w number
+---@param h number
+function RoxEditor:resize(w, h)
+  self.ui_handler:resize(w, h);
+end
+
+---@param focus boolean
+function RoxEditor:mouseFocus(focus)
+  print("ChangeFocus", focus)
 end
 
 return RoxEditor

@@ -3,13 +3,15 @@ local UIElement = require "core.ui.element"
 local Row = {}
 
 function Row:new(x, y, w, h)
-  local element = UIElement:new(x, y, w, h)
+  local element        = UIElement:new(x, y, w, h)
+  element.name         = "Row"
 
-  element.draw = function()
-    print("row!!!!")
+  element.draw         = function(self)
+    love.graphics.setColor(love.math.colorFromBytes({ 38, 159, 212 }))
+    love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
   end
 
-  function element:watch_resize()
+  element.watch_resize = function(self)
     self:horizontal_resize_childs()
   end
 

@@ -1,45 +1,23 @@
 -- local WindowManager = require "window_manager"
 local Editor = require "editor.editor"
 
-_G.main_rects = {
-  tool_panel = { x = 40, y = 0, width = 300, height = 1000 },
-  right_panel = { x = 40, y = 0, width = 300, height = 1000 },
-  top_panel = { x = 0, y = 0, width = 100, height = 40 },
-}
 
 ---@type RoxEditor
 Editor = Editor:new()
 
 function love.load()
-  -- debug_position()
-
   -- love.mouse.setGrabbed(true) -- Tranca o mouse
-
-  -- GlobalState = require 'global_state':new()
-  -- RoxEvents = require 'libs.rox-events':new()
-
-  -- GlobalState:set("ui/theme", {
-  -- primary = "#3498db",
-  -- secondary = "#FFFFFF",
-  -- })
-
-  -- WindowManager:init()
-  -- Editor = Editor:new()
 end
 
 ---@param focus boolean
 function love.focus(focus)
-  -- WindowManager:update_focus(focus)
+  print(focus)
 end
 
 function love.update(dt)
-  -- Editor:update(dt)
 end
 
 function love.draw()
-  -- love.graphics.setColor(1, 1, 1)
-  -- love.graphics.circle("fill", ball.x, ball.y, ball.radius)
-
   Editor:draw()
 end
 
@@ -87,24 +65,12 @@ end
 
 ---@param focus boolean
 function love.mousefocus(focus)
-  -- WindowManager:update_focus(focus)
+  Editor:mouseFocus(focus)
 end
 
 function love.wheelmoved(x, y)
-  -- WindowManager:update_focus(focus)
 end
 
-function love.resize()
-  -- WindowManager:update_size()
-  Editor:resize();
-  Editor.ui_handler:markDirty("Full")
-end
-
-function debug_position()
-  local w, h, target = GetDisplayInfo()
-  love.window.setMode(
-    w,
-    h,
-    { display = target, resizable = true }
-  )
+function love.resize(w, h)
+  Editor:resize(w, h);
 end

@@ -40,7 +40,9 @@ local utils = require "core.utils"
 ---@field render_order []string
 ---@field target_fps number
 ---@field timeSinceLastDraw number
+---@field noPropagate boolean
 local UIElement = {
+  noPropagate = false,
   target_fps = 60,
   ID = "",
   style = {
@@ -110,10 +112,6 @@ function UIElement:getAbsolutePosition()
   return parentX + self.rect.x, parentY + self.rect.y
 end
 
-function UIElement:forceRender()
-  self:markDirty()
-end
-
 -- Marca este elemento e todos os pais como necessitando renderização
 function UIElement:markDirty()
   self.dirty = true
@@ -124,7 +122,7 @@ function UIElement:markDirty()
   -- end
 
   for _, c in ipairs(self.childs) do
-    c:markDirty()
+    -- c:markDirty()
   end
 end
 
@@ -165,7 +163,7 @@ function UIElement:addChild(child)
     child:start()
   end
 
-  self:markDirty() -- A interface mudou
+  -- self:markDirty() -- A interface mudou
   return child
 end
 
@@ -181,7 +179,7 @@ function UIElement:removeChild(child)
     if c == child then
       table.remove(self.childs, i)
       child.parent = nil
-      self:markDirty()
+      -- self:markDirty()
       return true
     end
   end
@@ -240,21 +238,9 @@ end
 function UIElement:render()
   if not self.visible or self.alpha <= 0 then return end
 
-
   local now = love.timer.getTime()
   local fps = self.target_fps or 60
   local interval = 1 / fps
-
-
-  -- if self.dirty and (now - self.timeSinceLastDraw) < interval then
-  --   print("ERRO!")
-  --   return
-  -- end
-
-  if self.rect.width <= 0 or self.rect.height <= 0 then
-    -- print(self.rect.width, self.rect.height)
-    return
-  end
 
   -- Recria o canvas se necessário (tamanho mudou ou não existe)
   if not self.canvas or
@@ -269,17 +255,14 @@ function UIElement:render()
 
   -- 1. Renderiza no canvas se dirty
   if self.dirty then
-    -- print("Renderizando o elemento: " .. self.name)
+    print("UIElement:render: " .. self.name .. " Childs_Size: " .. #self.childs)
     self:startCanvas()
 
     -- Aplica o alpha global do elemento
     local r, g, b, a = love.graphics.getColor()
     love.graphics.setColor(1, 1, 1, self.alpha)
 
-    -- self.timeSinceLastDraw = now
-    print("wow")
     self:draw()
-    -- self:debug_box()
     love.graphics.setColor(r, g, b, a)
 
     love.graphics.setCanvas()
@@ -341,21 +324,21 @@ function UIElement:updateRect(rect)
   self.dirty = true
   self.dirtyFlags.full = true
 
+  -- TODO: Isso precisa ser reavalido
   -- Marca os pais como dirty para garantir que a hierarquia seja atualizada
   if self.parent then
-    self.parent:markDirty()
+    -- self.parent:markDirty()
   end
 end
 
 ---@param w number
 ---@param h number
 function UIElement:updateSize(w, h)
-  self.rect.width = w
-  self.rect.height = h
+  -- local invalid = utils.isInvalidResize(w, h, self.minHeight, self.minHeight)
+  -- if not invalid then return end
 
-  -- if self.parent then
-  --   self.parent:markDirty()
-  -- end
+  self.rect.width = w
+  -- self.rect.height = h
 
   -- self:propagateResize()
 end
@@ -365,46 +348,17 @@ end
 function UIElement:updatePosition(x, y)
   self.rect.x = x
   self.rect.y = y
-  self:markDirty()
-end
-
-function UIElement:manageMemory()
-  -- Para elementos fora da tela/inativos
-  if not self.visible or self.alpha == 0 then
-    if self.canvas then
-      self.canvas:release()
-      self.canvas = nil
-      self.dirty = true -- Força rerrenderização quando voltar
-    end
-  end
-
-  -- Para elementos que não mudam há muito tempo
-  if not self.dirty and self.timeSinceLastRender > 60 then
-    self:freeResources()
-  end
-
-  -- Propaga para filhos
-  for _, child in ipairs(self.childs) do
-    child:manageMemory()
-  end
-end
-
-function UIElement:freeResources()
-  if self.canvas then
-    self.canvas:release()
-  end
-
-  for _, child in ipairs(self.childs) do
-    child:freeResources()
-  end
+  -- self:markDirty()
 end
 
 function UIElement:bindData(data)
   self.data = data
 end
 
-function UIElement:click()
-  print("Click padrao do elemento")
+---@param mousedata MouseClickData
+function UIElement:click(mousedata)
+  print(self.name .. ":UIElement:click")
+  print(utils.inspect(mousedata))
 end
 
 function UIElement:handleMouseMove()
@@ -433,19 +387,14 @@ function UIElement:beginDrag(mouseX, mouseY)
   target.dragOffsetX = mouseX - ax
   target.dragOffsetY = mouseY - ay
   target.dragging = true
-  target:markDirty()
+  -- target:markDirty()
   return self
 end
 
 function UIElement:endDrag(automatic)
   local target = self.drag_taget and self.drag_taget or self
   target.dragging = false
-
-  if target.onDragEnd then
-    target:onDragEnd()
-  end
-
-  target:markDirty()
+  -- target:markDirty()
 end
 
 function UIElement:isMouseInsideInnerBounds(mx, my)
@@ -473,7 +422,7 @@ function UIElement:resize(w, h)
     self.rect.height = h
   end
 
-  -- self:propagateResize()
+  self:propagateResize()
 end
 
 function UIElement:propagateResize()

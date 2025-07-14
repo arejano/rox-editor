@@ -1,22 +1,25 @@
 local UIElement = require "core.ui.element"
+local utils = require "core.utils"
 
 ---@class UIHandler
 ---@field rootElement UIElement | nil
----@field addElement function
 ---@field stopped boolean
----@field elementOnMouseFocus UIElement | nil
+---@field elementOnMouseFocus UIElement
 ---@field elementOnDragging UIElement | nil
-local UiHandler = {
+---@field elementOnResizing UIElement | nil
+local UIHandler = {
   rootElement = nil,
   stopped = false,
   elementOnMouseFocus = nil,
   elementOnDragging = nil,
   elementOnResizing = nil,
+  minWidth = 200,
+  minHeight = 200,
 }
-UiHandler.__index = UiHandler
+UIHandler.__index = UIHandler
 
-function UiHandler:new()
-  local obj = setmetatable({}, UiHandler)
+function UIHandler:new()
+  local obj = setmetatable({}, UIHandler)
   obj.elementOnMouseFocus = nil
   obj.previousMouseFocus = nil
 
@@ -25,39 +28,36 @@ function UiHandler:new()
 end
 
 ---------------------------------------------------------Update
-function UiHandler:update(dt)
+function UIHandler:update(dt)
   -- self.rootElement:update(dt)
-
   -- local deepestChild = self:getDeepestChildAtPosition(x, y)
   -- if self.elementOnMouseFocus == nil then return end
-
   -- self.elementOnMouseFocus:update(dt)
 end
 
----------------------------------------------------------Mouse
+function UIHandler:cancelDragAndResize(relese)
+  if relese then
+    if self.elementOnResizing then
+      self.elementOnResizing:endResize()
+      self.elementOnResizing = nil
+    end
 
-function UiHandler:cancelDragAndResize()
-  if self.elementOnResizing then
-    self.elementOnResizing:endResize()
-    self.elementOnResizing = nil
-  end
-
-  if self.elementOnDragging then
-    self.elementOnDragging:endDrag()
-    self.elementOnDragging = nil
+    if self.elementOnDragging then
+      self.elementOnDragging:endDrag()
+      self.elementOnDragging = nil
+    end
   end
 end
 
+---------------------------------------------------------Mouse
 ---@param mousedata  MouseClickData
-function UiHandler:handleMouseClick(mousedata)
+function UIHandler:handleMouseClick(mousedata)
   if self.stopped then return end
 
   local focus = self.elementOnMouseFocus
 
   -- Cancel Dragging and Resize
-  if mousedata.release then
-    self:cancelDragAndResize()
-  end
+  self:cancelDragAndResize(mousedata.release)
 
   if focus and focus.transpass then
     while focus.transpass do
@@ -85,23 +85,18 @@ function UiHandler:handleMouseClick(mousedata)
     return
   end
 
-  -- Change Focus
+  -- Send click to focus
   if focus ~= nil and focus.click and focus.isClickable then
-    if mousedata.pressed then
-      focus:click(mousedata)
-    else
-      focus:click(mousedata)
-    end
+    focus:click(mousedata)
   end
 end
 
-function UiHandler:handleMouseMove(x, y)
+function UIHandler:handleMouseMove(x, y)
   if self.elementOnDragging or self.elementOnResizing then
     return
   end
 
   local deepestChild = self:getDeepestChildAtPosition(x, y)
-
 
   -- Atualiza o foco atual
   self:updateFocus(deepestChild)
@@ -110,7 +105,7 @@ function UiHandler:handleMouseMove(x, y)
   return deepestChild
 end
 
-function UiHandler:getDeepestChildAtPosition(x, y)
+function UIHandler:getDeepestChildAtPosition(x, y)
   local function findDeepest(element)
     if not element.visible or element.alpha <= 0 then
       return nil
@@ -161,7 +156,7 @@ function UiHandler:getDeepestChildAtPosition(x, y)
   return findDeepest(self.rootElement)
 end
 
-function UiHandler:updateFocus(newFocus)
+function UIHandler:updateFocus(newFocus)
   -- Se o foco não mudou, não faz nada
   if self.elementOnMouseFocus == newFocus then
     return
@@ -192,12 +187,12 @@ function UiHandler:updateFocus(newFocus)
 
     -- Propaga para cima na hierarquia (opcional)
     self:propagateMouseOver(newFocus)
-    newFocus:markDirty()
+    -- newFocus:markDirty()
   end
 end
 
 -- Marca todos os pais como "mouse over" até a raiz
-function UiHandler:propagateMouseOver(element)
+function UIHandler:propagateMouseOver(element)
   local parent = element.parent
   while parent do
     parent.isMouseOver = true
@@ -206,33 +201,26 @@ function UiHandler:propagateMouseOver(element)
 end
 
 --------------------------------------------------------- Resize
-function UiHandler:resize()
-  local w, h = love.graphics.getDimensions()
-
-  if w < 200 or h < 200 then
-    self.stopped = true
-    return
-  else
-    self.stopped = false
-  end
+---@param w number
+---@param h number
+function UIHandler:resize(w, h)
+  self.stopped = utils.isInvalidResize(w, h, self.minWidth, self.minHeight)
+  if self.stopped then return end
 
   -- Atualiza o root element
   self.rootElement:updateRect({ x = 0, y = 0, width = w, height = h })
-
   self.rootElement:resize(w, h)
 end
 
 -- Renderiza toda a UI
-function UiHandler:render()
-  if self.stopped then
-  else
-    self.rootElement:render()
-  end
+function UIHandler:render()
+  if self.stopped then return end
 
-  -- self:inspect()
+  self.rootElement:render()
+  self:inspect()
 end
 
-function UiHandler:inspect()
+function UIHandler:inspect()
   -- local root_childs = self.rootElement:getChildIds()
 
   -- for i, id in ipairs(root_childs) do
@@ -240,18 +228,13 @@ function UiHandler:inspect()
   -- end
 end
 
--- Adiciona um elemento na raiz
-function UiHandler:addElement(element)
-  return self.rootElement:addChild(element)
-end
-
 -- Remove um elemento da raiz
-function UiHandler:removeElement(element)
+function UIHandler:removeElement(element)
   return self.rootElement:removeChild(element)
 end
 
 -- Função para encontrar elemento sob o mouse (útil para eventos)
-function UiHandler:getElementAt(x, y)
+function UIHandler:getElementAt(x, y)
   local function checkElement(element, x, y)
     local ex, ey = element:getAbsolutePosition()
     local w, h = element.rect.width, element.rect.height
@@ -270,15 +253,11 @@ function UiHandler:getElementAt(x, y)
   return checkElement(self.rootElement, x, y)
 end
 
-function UiHandler:updateLayout()
+function UIHandler:updateLayout()
   self.rootElement:updateLayout()
 end
 
-function UiHandler:markDirty(flag)
-  self.rootElement:markDirty(flag)
-end
-
-function UiHandler:mouseMoved(mousedata)
+function UIHandler:mouseMoved(mousedata)
   local focus = self:handleMouseMove(mousedata.x, mousedata.y)
   local dragging = self.elementOnDragging
   local resizing = self.elementOnResizing
@@ -286,7 +265,7 @@ function UiHandler:mouseMoved(mousedata)
   if dragging then
     local mx, my = love.mouse.getPosition()
     if dragging.drag_taget then
-      dragging.drag_taget:dragTo(mx, my)
+      -- dragging.drag_taget:dragTo(mx, my)
     else
       dragging:dragTo(mx, my)
     end
@@ -307,7 +286,7 @@ function UiHandler:mouseMoved(mousedata)
   end
 end
 
--- function UiHandler:getFocusedElement()
+-- function UIHandler:getFocusedElement()
 --   local x, y = love.mouse.getPosition()
 --   local focusedElement = self:handleMouseMove(x, y)
 --   -- Você pode adicionar lógica adicional aqui
@@ -323,7 +302,7 @@ end
 -- end
 
 ---@param element UiElement
-function UiHandler:cursorByState(element)
+function UIHandler:cursorByState(element)
   if self.elementOnResizing then
     return 'sizenwse'
   end
@@ -340,4 +319,4 @@ function UiHandler:cursorByState(element)
   end
 end
 
-return UiHandler
+return UIHandler

@@ -2,13 +2,11 @@ local Window = require 'core.ui.components.window'
 local UIElement = require "core.ui.element"
 
 local element = Window:new()
-element.isDragable = true
-element.rect.width = 70
+element.rect.width = 150
 element.rect.height = 30
 element.isDragable = true
 
 local text = UIElement:new(5, 5, 60, 20)
-text.transpass = true
 
 text.draw = function(self)
   love.graphics.setColor(1, 1, 1)
