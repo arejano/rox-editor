@@ -1,9 +1,14 @@
 -- local WindowManager = require "window_manager"
-local Editor = require "editor.editor"
+local _Editor = require "editor.editor"
+local _KeyboardManager = require("core.keyboard_manager")
+local _eventManager = require("core.events")
 
+-- Sempre primeiro os eventos
+EventManager = _eventManager:new()
 
 ---@type RoxEditor
-Editor = Editor:new()
+Editor = _Editor:new()
+KeyboardManager = _KeyboardManager:new()
 
 function love.load()
   -- love.mouse.setGrabbed(true) -- Tranca o mouse
@@ -22,7 +27,12 @@ function love.draw()
   Editor:draw()
 end
 
-function love.keypressed()
+function love.keypressed(key)
+  KeyboardManager:process(key, true)
+end
+
+function love.keyreleased(key)
+  KeyboardManager:process(key, false)
 end
 
 -- Mouse

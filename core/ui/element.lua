@@ -9,6 +9,7 @@ local utils = require "core.utils"
 ---@field onMouseLeave function
 ---@field handleEvent function
 ---@field onDragEnd function
+---@field consumeEvent function
 ---@field parent UIElement | nil
 ---@field canvas any
 ---@field rect Rect
@@ -265,7 +266,7 @@ function UIElement:render()
 
   -- 1. Renderiza no canvas se dirty
   if self.dirty then
-    print("UIElement:render: " .. self.name .. " Childs_Size: " .. #self.childs)
+    -- print("UIElement:render: " .. self.name .. " Childs_Size: " .. #self.childs)
     self:startCanvas()
 
     -- Aplica o alpha global do elemento
@@ -558,6 +559,10 @@ end
 
 function UIElement:vertical_resize_childs()
   print(#self.parent.childs)
+end
+
+function UIElement:consumeEvent(event)
+  print("UIElement:consumeEvent" .. utils.inspect(event))
 end
 
 return UIElement

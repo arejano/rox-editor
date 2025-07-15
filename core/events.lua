@@ -1,39 +1,30 @@
 -- core/global_state.lua
-local GlobalState = {
-  _data = {},
+local EventManager = {
   _subscribers = setmetatable({}, { __mode = "k" }) -- Weak tables para GC
 }
-GlobalState.__index = GlobalState
+EventManager.__index = EventManager
 
-function GlobalState:new()
-  return setmetatable({}, GlobalState)
+function EventManager:new()
+  return setmetatable({}, EventManager)
 end
 
-function GlobalState:watch(key, element, callback)
+function EventManager:watch(key, element, callback)
   self._subscribers[key] = self._subscribers[key] or {}
-  self._subscribers[key][element] = callback or element.onDataUpdate
+  self._subscribers[key][element] = callback or element.consumeEvent
 end
 
-function GlobalState:unwatch(key, element)
+function EventManager:unwatch(key, element)
   if self._subscribers[key] then
     self._subscribers[key][element] = nil
   end
 end
 
-function GlobalState:set(key, value)
-  -- Deep compare para evitar notificações desnecessárias
-  -- if not deepCompare(self._data[key], value) then
-  self._data[key] = value
+function EventManager:emit(key, event)
   if self._subscribers[key] then
     for element, callback in pairs(self._subscribers[key]) do
-      callback(element, value)
+      callback(element, event)
     end
   end
-  -- end
 end
 
-function GlobalState:get(key)
-  return self._data[key]
-end
-
-return GlobalState
+return EventManager

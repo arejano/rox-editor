@@ -13,7 +13,6 @@ editor_ui.rootElement.noPropagate = true
 
 editor_ui.rootElement.draw = function(self)
   if self then
-    print("editor_ui:draw")
     love.graphics.setColor(love.math.colorFromBytes(70, 71, 74))
     love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
   end
@@ -100,6 +99,17 @@ editor_ui.rootElement:addChild(fps)
 
 -- local wow_bag = require "editor.ui.blocks.wow_bag"
 -- editor_ui.rootElement:addChild(wow_bag)
+
+EventManager:watch("update_fps", main_row, function(self, event)
+  print(utils.inspect(event))
+  if event.key == "r" then
+    self.rect.y = 0
+  end
+
+  if event.key == "a" then
+    self.rect.y = self.rect.y + 10
+  end
+end)
 
 editor_ui.rootElement.canvas = nil
 
