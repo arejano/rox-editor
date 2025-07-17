@@ -8,7 +8,9 @@ local game_events = require("games.triangle_wars.game_events")
 ---@field ecs Ecs | nil
 local TriangleWarsGame = {
   game_state = 1,
-  ecs = nil
+  ecs = nil,
+  dt = 0,
+  
 }
 
 TriangleWarsGame.__index = TriangleWarsGame
@@ -26,6 +28,7 @@ end
 
 ---@param dt number
 function TriangleWarsGame:update(dt)
+  self.ecs:update(dt)
 end
 
 function TriangleWarsGame:draw()
@@ -33,6 +36,7 @@ function TriangleWarsGame:draw()
     type = game_events.Render,
     data = nil
   })
+  self.ecs:update(self.dt)
 end
 
 return TriangleWarsGame

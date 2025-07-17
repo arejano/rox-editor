@@ -1,5 +1,6 @@
-local game_state = require("core.game_state")
-local utils      = require("core.utils")
+local game_state  = require("core.game_state")
+local game_events = require("games.triangle_wars.game_events")
+local utils       = require("core.utils")
 
 -- ACHAR UMA FORMA DE NAO REPETIR AS KEYS E COMMANDS
 
@@ -7,7 +8,7 @@ local utils      = require("core.utils")
 ---@field Editor Editor | nil
 ---@field Game Ecs | nil
 ---@field Debugger nil
-local AppState   = {
+local AppState    = {
   global_keys = {
     ["f1"] = "main/focus/editor",
     ["f2"] = "main/focus/game",
@@ -19,7 +20,7 @@ local AppState   = {
   Debugger = nil,
   handler_focus = nil,
 }
-AppState.__index = AppState
+AppState.__index  = AppState
 
 function AppState:new()
   local self = { handler_focus = nil, }
@@ -39,9 +40,10 @@ function AppState:consumeEvent(command)
 
   if command == "main/pause" then
     self.Game.state = game_state.Paused
-    for i, v in ipairs(self.Game.systems) do
-      v:process(000)
-      end
+    self.Game.ecs:add_event({
+      type = game_events.Render,
+      data = nil
+    })
     return
   end
 end

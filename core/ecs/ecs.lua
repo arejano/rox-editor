@@ -230,7 +230,8 @@ function Ecs:add_event(event)
   table.insert(self.pool_event, event)
 end
 
----@param event = NewEvent
+---@param dt number
+---@param pass boolean
 function Ecs:update(dt, pass)
   if dt then
     self.delta_time = dt
@@ -244,7 +245,7 @@ function Ecs:update(dt, pass)
     if to_run == nil then return end
 
     self.counters.last_sys_run = #to_run
-    for i, s in pairs(to_run) do
+    for _, s in pairs(to_run) do
       local system = self.systems[s]
 
       if self.systems_status[s] == true then
@@ -340,7 +341,7 @@ function Ecs:remove_entity(entity_id)
   end
 
   self.entities[entity_id] = nil
-  self:add_event({ type = game_events.EntityRemoved, data = entity_id })
+  -- self:add_event({ type = game_events.EntityRemoved, data = entity_id })
   return true
 end
 

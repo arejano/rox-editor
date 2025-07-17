@@ -8,7 +8,8 @@ function render_system:start()
 end
 
 function render_system:process()
-  print("Renderizando")
+  love.graphics.setColor(love.math.colorFromBytes({ 250, 121, 112 }))
+  love.graphics.rectangle("fill", 0, 0, 500, 500)
 end
 
 return render_system

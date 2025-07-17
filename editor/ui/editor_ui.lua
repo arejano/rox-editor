@@ -13,7 +13,7 @@ editor_ui.rootElement.noPropagate = true
 
 editor_ui.rootElement.draw = function(self)
   if self then
-    love.graphics.setColor(love.math.colorFromBytes(70, 71, 74))
+    love.graphics.setColor(love.math.colorFromBytes(0,0,0,0))
     love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
   end
 end
