@@ -1,3 +1,6 @@
+local game_state = require("core.game_state")
+local utils = require("core.utils")
+
 ---@class Ecs
 ---@field new function
 ---@field update function
@@ -119,10 +122,10 @@ end
 ---@param components Component
 ---@return string
 function Ecs:add_entity(components)
-  assert(is_component(components), "Some component is invalid")
+  -- assert(is_component(components), "Some component is invalid")
 
   -- local new_id = self:newId("entity")
-  local new_id = generateUUID();
+  local new_id = utils.newUUID();
 
   for _, component in ipairs(components) do
     self:register_component(new_id, component)
@@ -132,7 +135,7 @@ end
 
 -- NOVA FUNÇÃO: Marca queries como dirty quando componentes são alterados
 function Ecs:register_component(entity, component)
-  assert(is_valid_component(component), "Invalid Component")
+  -- assert(is_valid_component(component), "Invalid Component")
 
   if self.entities_by_component[component.type] == nil then
     self.entities_by_component[component.type] = {}
@@ -166,7 +169,7 @@ function Ecs:invalidate_query_cache(cache_key)
 end
 
 function Ecs:old_register_component(entity, component)
-  assert(is_valid_component(component), "Invalid Component")
+  -- assert(is_valid_component(component), "Invalid Component")
 
   -- Cria a tabela caso nao exista
   if self.entities_by_component[component.type] == nil then
@@ -189,7 +192,7 @@ function Ecs:old_register_component(entity, component)
 end
 
 function Ecs:add_system(system)
-  assert(is_valid_system(system), "system need a PROCESS method")
+  -- assert(is_valid_system(system), "system need a PROCESS method")
   local new_id = self:newId("system")
   self.systems[new_id] = system
 
@@ -339,14 +342,6 @@ function Ecs:remove_entity(entity_id)
   self.entities[entity_id] = nil
   self:add_event({ type = game_events.EntityRemoved, data = entity_id })
   return true
-end
-
-function generateUUID()
-  local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-  return string.gsub(template, "[xy]", function(c)
-    local v = (c == "x") and math.random(0, 15) or math.random(8, 11)
-    return string.format("%x", v)
-  end)
 end
 
 return Ecs

@@ -2,6 +2,11 @@
 local _Editor = require "editor.editor"
 local _KeyboardManager = require("core.keyboard_manager")
 local _eventManager = require("core.events")
+local utils = require("core.utils")
+
+local AppState = require("app_state")
+
+local tri_game = require("games.triangle_wars.triangle_wars")
 
 -- Sempre primeiro os eventos
 EventManager = _eventManager:new()
@@ -9,21 +14,33 @@ EventManager = _eventManager:new()
 ---@type RoxEditor
 Editor = _Editor:new()
 KeyboardManager = _KeyboardManager:new()
+State = AppState:new()
 
 function love.load()
-  -- love.mouse.setGrabbed(true) -- Tranca o mouse
+  KeyboardManager:addGlobalKeys("main", State.global_keys)
+
+  -- AppState - Estado Principal da aplicacao!!!
+  State.handler_focus = Editor
+
+  EventManager:manyWatch(State:getCommandsByKeys(), State)
+
+  GAME = tri_game:new()
+  State.Game = GAME
+  State.Editor = Editor
 end
 
 ---@param focus boolean
 function love.focus(focus)
-  print(focus)
 end
 
 function love.update(dt)
-  Editor:update(dt)
+  if State.handler_focus ~= nil then
+    State.handler_focus:update(dt)
+  end
 end
 
 function love.draw()
+  GAME:draw()
   Editor:draw()
 end
 
@@ -37,40 +54,15 @@ end
 
 -- Mouse
 function love.mousepressed(x, y, button, istouch, presses)
-  -- button 1:left 2:right 3:wheel
-  --presses quantidade de cliques no botao
-  ---@type MouseClickData
-  local mouseData = {
-    x = x,
-    y = y,
-    button = button,
-    istouch = istouch,
-    presses = presses,
-    pressed = true,
-    release = false
-  }
-  Editor:mousePressed(mouseData)
+  Editor:mousePressed(x, y, button, istouch, presses)
 end
 
 function love.mousereleased(x, y, button, istouch, presses)
-  ---@type MouseClickData
-  local mouseData = {
-    x = x,
-    y = y,
-    button = button,
-    istouch = istouch,
-    presses = presses,
-    pressed = false,
-    release = true
-  }
-  Editor:mouseReleased(mouseData)
+  Editor:mouseReleased(x, y, button, istouch, presses)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
-  local mouseData = {
-    x = x,
-    y = y,
-  }
+  local mouseData = { x = x, y = y, }
   Editor:mouseMoved(mouseData)
 end
 

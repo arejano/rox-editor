@@ -1,8 +1,10 @@
 local utils = require("core.utils")
 
 local KeyboardManager = {
+  global_layer = {},
+  handler_layer = {},
+  pressed_keys = {},
   comands_by_state = {},
-  pressed_keys = {}
 }
 KeyboardManager.__index = KeyboardManager
 
@@ -11,25 +13,60 @@ function KeyboardManager:new()
   return self
 end
 
-function KeyboardManager:addKeys(state, keys)
-  if state == nil then
-    print("State deve ser informado para registrar keys")
-    return
-  end
-  if keys == nil then
-    print("Keys devem ser informadas")
+function KeyboardManager:addKeys(handler, keys)
+  if handler == nil or keys == nil then
+    print("Erro ao adicionar keys")
     return
   end
 
-  self.comands_by_state[state] = keys
+  self.handler_layer[handler] = keys
+end
+
+function KeyboardManager:addGlobalKeys(handler, keys)
+  if handler == nil or keys == nil then
+    print("Erro ao adicionar keys globais")
+    return
+  end
+
+  self.global_layer[handler] = keys
 end
 
 function KeyboardManager:process(key, pressed)
   self.pressed_keys[key] = pressed and pressed or nil
 
-  if pressed and self.pressed_keys["a"] or self.pressed_keys["r"] then
-    EventManager:emit("update_fps", { data = "FPS", key = key })
+  local global_success = self:processGlobalLayer()
+
+  if global_success then return end
+
+  local handler_success = self:processHandlerLayer()
+end
+
+function KeyboardManager:processGlobalLayer()
+  local processed = false
+  for layer, keys in pairs(self.global_layer) do
+    for key, command in pairs(keys) do
+      if self.pressed_keys[key] then
+        EventManager:emit(command, command)
+        processed = true
+      end
+    end
   end
+
+  return processed
+end
+
+function KeyboardManager:processHandlerLayer()
+  -- local processed = false
+  -- for layer, keys in pairs(self.global_layer) do
+  --   for key, command in pairs(keys) do
+  --     if self.pressed_keys[key] then
+  --       EventManager:emit(command)
+  --       processed = true
+  --     end
+  --   end
+  -- end
+
+  -- return processed
 end
 
 return KeyboardManager

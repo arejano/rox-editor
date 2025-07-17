@@ -13,6 +13,12 @@ function EventManager:watch(key, element, callback)
   self._subscribers[key][element] = callback or element.consumeEvent
 end
 
+function EventManager:manyWatch(watchers, element)
+  for i, v in ipairs(watchers) do
+    self:watch(v, element)
+  end
+end
+
 function EventManager:unwatch(key, element)
   if self._subscribers[key] then
     self._subscribers[key][element] = nil
