@@ -17,16 +17,14 @@ KeyboardManager = _KeyboardManager:new()
 State = AppState:new()
 
 function love.load()
-  KeyboardManager:addGlobalKeys("main", State.global_keys)
+  -- AppState - Definir estado inicial da aplicacao
 
-  -- AppState - Estado Principal da aplicacao!!!
-  State.handler_focus = Editor
-
-  EventManager:manyWatch(State:getCommandsByKeys(), State)
+  KeyboardManager:registerHandler(State)
 
   GAME = tri_game:new()
   State.Game = GAME
   State.Editor = Editor
+  State.handler_focus = Editor
 end
 
 ---@param focus boolean

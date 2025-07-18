@@ -120,4 +120,25 @@ function utils.deepCopy(orig, copies)
   return copy
 end
 
+function utils.sortTableByKeyLength(input)
+  local result = {}
+  for k, v in pairs(input) do
+    table.insert(result, { key = k, value = v })
+  end
+
+  table.sort(result, function(a, b)
+    return #a.key > #b.key
+  end)
+
+  return result
+end
+
+function utils.getKeys(input)
+  local result = {}
+  for k, v in pairs(input) do
+    table.insert(result, v.key)
+  end
+  return result
+end
+
 return utils

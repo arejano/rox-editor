@@ -6,14 +6,40 @@ local utils       = require("core.utils")
 
 ---@class AppState
 ---@field Editor Editor | nil
----@field Game Ecs | nil
+---@field Game TriangleWarsGame | nil
 ---@field Debugger nil
 local AppState    = {
-  global_keys = {
-    ["f1"] = "main/focus/editor",
-    ["f2"] = "main/focus/game",
-    ["f3"] = "main/focus/debugger",
-    ["p"] = "main/pause"
+  keys = {
+    global = {
+      ["f1"] = "main/focus/editor",
+      ["f2"] = "main/focus/game",
+      ["f3"] = "main/focus/debugger",
+    },
+    editor = {
+      ["lctrl-s"] = "save",
+      ["lctrl-n"] = "new",
+      ["lctrl-o"] = "open",
+    },
+    game = {
+      ["p"] = "main/pause",
+      ["a"] = "game/left",
+      ["w"] = "game/up",
+      ["s"] = "game/down",
+      ["d"] = "game/right",
+      ["lshift-a"] = "Running/Left",
+      ["lshift-a-w"] = "Running/Left/Up",
+      ["lshift-a-s"] = "Running/Left/Down",
+      ["lshift-a-d"] = "Running/Left/Right",
+      ["lshift-w"] = "Running/up",
+      ["lshift-s"] = "Running/Down",
+      ["lshift-d"] = "Running/Right",
+    }
+  },
+  events_by_layer = {
+    game = game_events.KeyboardInput,
+    editor = nil,
+    global = nil,
+    debugger = nil
   },
   Editor = nil,
   Game = nil,
@@ -27,35 +53,50 @@ function AppState:new()
   return setmetatable(self, AppState);
 end
 
-function AppState:getCommandsByKeys()
-  local commands = {}
-  for i, v in pairs(self.global_keys) do
-    table.insert(commands, v)
-  end
-  return commands
-end
-
-function AppState:consumeEvent(command)
-  self:defineFocus(command)
-
-  if command == "main/pause" then
-    self.Game.state = game_state.Paused
-    self.Game.ecs:add_event({
-      type = game_events.Render,
-      data = nil
-    })
+function AppState:handleKey(event_data, key_layer)
+  if event_data == nil then
     return
   end
+
+  if key_layer == "global" then
+    self:handleGlobalKey(event_data)
+    return
+  end
+
+  self:handleLayerKey(key_layer, event_data)
 end
 
-function AppState:defineFocus(command)
-  local focus_commands = {
-    ["main/focus/editor"] = self.Editor,
-    ["main/focus/game"] = self.Game,
-    ["main/focus/debugger"] = self.Debugger,
-  }
+function AppState:handleLayerKey(key_layer, event_data)
+  if self.keys[key_layer] then
+    local action = self.keys[key_layer][event_data]
 
-  self.handler_focus = focus_commands[command] and focus_commands[command] or nil
+
+    local new_event = {
+      type = self.events_by_layer[key_layer],
+      data = action
+    }
+
+    if key_layer == "editor" then
+      print("Editor:Keyboard")
+      return
+    end
+
+    if key_layer == "game" then
+      self.Game:newEvent(new_event)
+      return
+    end
+  end
+end
+
+function AppState:handleGlobalKey(event_data)
+  print("Hotkey:Global: " .. event_data)
+end
+
+function AppState:newGameEvent(event, data)
+  self.Game.ecs:add_event({
+    type = event,
+    data = data or nil
+  })
 end
 
 return AppState

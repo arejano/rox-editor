@@ -1,4 +1,5 @@
 local game_state = require("core.game_state")
+local game_events = require("games.triangle_wars.game_events")
 local utils = require("core.utils")
 
 ---@class Ecs

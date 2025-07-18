@@ -1,10 +1,9 @@
 local utils = require("core.utils")
 
 local KeyboardManager = {
-  global_layer = {},
-  handler_layer = {},
+  handler = nil,
   pressed_keys = {},
-  comands_by_state = {},
+  layer_map = {},
 }
 KeyboardManager.__index = KeyboardManager
 
@@ -13,60 +12,33 @@ function KeyboardManager:new()
   return self
 end
 
-function KeyboardManager:addKeys(handler, keys)
-  if handler == nil or keys == nil then
+function KeyboardManager:registerHandler(handler)
+  if handler == nil then
     print("Erro ao adicionar keys")
     return
   end
 
-  self.handler_layer[handler] = keys
+  self.handler = handler
+  self:generateKeyMap(handler.keys)
 end
 
-function KeyboardManager:addGlobalKeys(handler, keys)
-  if handler == nil or keys == nil then
-    print("Erro ao adicionar keys globais")
-    return
+function KeyboardManager:generateKeyMap(keys)
+  for layer_name, hotkeys in pairs(keys) do
+    for key, action in pairs(hotkeys) do
+      self.layer_map[key] = layer_name
+    end
   end
 
-  self.global_layer[handler] = keys
+  print(utils.inspect(self.layer_map))
 end
 
 function KeyboardManager:process(key, pressed)
   self.pressed_keys[key] = pressed and pressed or nil
 
-  local global_success = self:processGlobalLayer()
-
-  if global_success then return end
-
-  local handler_success = self:processHandlerLayer()
-end
-
-function KeyboardManager:processGlobalLayer()
-  local processed = false
-  for layer, keys in pairs(self.global_layer) do
-    for key, command in pairs(keys) do
-      if self.pressed_keys[key] then
-        EventManager:emit(command, command)
-        processed = true
-      end
-    end
-  end
-
-  return processed
-end
-
-function KeyboardManager:processHandlerLayer()
-  -- local processed = false
-  -- for layer, keys in pairs(self.global_layer) do
-  --   for key, command in pairs(keys) do
-  --     if self.pressed_keys[key] then
-  --       EventManager:emit(command)
-  --       processed = true
-  --     end
-  --   end
-  -- end
-
-  -- return processed
+  local sorted = utils.sortTableByKeyLength(self.pressed_keys)
+  local string_keys = utils.getKeys(sorted)
+  local hotkey = table.concat(string_keys, "-")
+  self.handler:handleKey(#hotkey > 0 and hotkey or nil, self.layer_map[hotkey])
 end
 
 return KeyboardManager

@@ -29,3 +29,7 @@ local game_commands = {
   Save = '',
   Walking = '',
 }
+
+return {
+  editor = editor_commands
+}
