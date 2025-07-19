@@ -12,10 +12,12 @@ end
 function keyboard_system:process(ecs, dt, event, pass)
   local block = ecs:query({ c_types.Block })
   local transform = ecs:get_component(block[1], c_types.Transform).data
-  print(utils.inspect(transform))
-  if transform then
-    transform.position.y = transform.position.position + 10
-  end
+
+  transform.position.x = transform.position.x + 10
+  transform.position.y = transform.position.y + 10
+  print(utils.inspect(transform.position))
+
+  -- ecs:apply(transform, function(self) print(self) end)
 end
 
 return keyboard_system
