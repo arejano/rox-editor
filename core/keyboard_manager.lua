@@ -19,26 +19,25 @@ function KeyboardManager:registerHandler(handler)
   end
 
   self.handler = handler
-  self:generateKeyMap(handler.keys)
+  self:generateKeyMap(handler.layers)
 end
 
-function KeyboardManager:generateKeyMap(keys)
-  for layer_name, hotkeys in pairs(keys) do
+function KeyboardManager:generateKeyMap(layers)
+  for layer_name, hotkeys in pairs(layers) do
     for key, action in pairs(hotkeys) do
       self.layer_map[key] = layer_name
     end
   end
-
-  print(utils.inspect(self.layer_map))
 end
 
 function KeyboardManager:process(key, pressed)
-  self.pressed_keys[key] = pressed and pressed or nil
+  self.pressed_keys[key] = pressed or nil
 
-  local sorted = utils.sortTableByKeyLength(self.pressed_keys)
-  local string_keys = utils.getKeys(sorted)
-  local hotkey = table.concat(string_keys, "-")
-  self.handler:handleKey(#hotkey > 0 and hotkey or nil, self.layer_map[hotkey])
+  if not next(self.pressed_keys) then
+    self.handler:releaseKeyboard()
+  end
+
+  self.handler:handleKey(self.pressed_keys)
 end
 
 return KeyboardManager

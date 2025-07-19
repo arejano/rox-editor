@@ -1,0 +1,3 @@
+---@class KeyboardEventData
+---@field pressed_keys string[]
+---@field type number

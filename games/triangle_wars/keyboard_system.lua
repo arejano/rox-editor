@@ -3,21 +3,42 @@ local utils           = require("core.utils")
 local c_types         = require("games.triangle_wars.c_types")
 
 local keyboard_system = {
-  events = { game_events.KeyboardInput }
+  events = { game_events.KeyboardInput },
+  requires = { c_types.Transform, c_types.Player },
+  key_vectors = {
+    ["w"] = { dx = 0, dy = -1 }, --Up
+    ["a"] = { dx = -1, dy = 0 }, --Left
+    ["s"] = { dx = 0, dy = 1 },  --Down
+    ["d"] = { dx = 1, dy = 0 },  --Right
+  }
 }
 
 function keyboard_system:start()
 end
 
+---@param event KeyboardEventData
 function keyboard_system:process(ecs, dt, event, pass)
-  local block = ecs:query({ c_types.Block })
-  local transform = ecs:get_component(block[1], c_types.Transform).data
+  if event.data == nil then
+    ecs:add_event({ type = game_events.StopPlayerMove, data = nil })
+    return
+  end
 
-  transform.position.x = transform.position.x + 10
-  transform.position.y = transform.position.y + 10
-  print(utils.inspect(transform.position))
+  local entity = ecs:query_first(self.requires)
 
-  -- ecs:apply(transform, function(self) print(self) end)
+  local pressed_keys = event.data
+  local velocity = { dx = 0, dy = 0 }
+  for key, _ in pairs(pressed_keys) do
+    if self.key_vectors[key] then
+      velocity.dx = velocity.dx + self.key_vectors[key].dx
+      velocity.dy = velocity.dy + self.key_vectors[key].dy
+    end
+  end
+
+
+  local running = pressed_keys["lshift"]
+  ecs:set_component(entity, c_types.Velocity, velocity)
+  ecs:set_component(entity, c_types.Running, running)
+  EventManager:emit("player_update", { velocity = velocity, running = running })
 end
 
 return keyboard_system

@@ -19,6 +19,8 @@ State = AppState:new()
 function love.load()
   -- AppState - Definir estado inicial da aplicacao
 
+
+
   KeyboardManager:registerHandler(State)
 
   GAME = tri_game:new()

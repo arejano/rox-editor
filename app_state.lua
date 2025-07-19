@@ -9,11 +9,12 @@ local utils       = require("core.utils")
 ---@field Game TriangleWarsGame | nil
 ---@field Debugger nil
 local AppState    = {
-  keys = {
+  layers = {
     global = {
       ["f1"] = "main/focus/editor",
       ["f2"] = "main/focus/game",
       ["f3"] = "main/focus/debugger",
+      ["escape"] = "main/focus/debugger",
     },
     editor = {
       ["lctrl-s"] = "save",
@@ -26,13 +27,7 @@ local AppState    = {
       ["w"] = "game/up",
       ["s"] = "game/down",
       ["d"] = "game/right",
-      ["lshift-a"] = "Running/Left",
-      ["lshift-a-w"] = "Running/Left/Up",
-      ["lshift-a-s"] = "Running/Left/Down",
-      ["lshift-a-d"] = "Running/Left/Right",
-      ["lshift-w"] = "Running/up",
-      ["lshift-s"] = "Running/Down",
-      ["lshift-d"] = "Running/Right",
+      ["lshift"] = "game/run",
     }
   },
   events_by_layer = {
@@ -53,43 +48,52 @@ function AppState:new()
   return setmetatable(self, AppState);
 end
 
-function AppState:handleKey(event_data, key_layer)
-  if event_data == nil then
-    return
-  end
-
-  if key_layer == "global" then
-    self:handleGlobalKey(event_data)
-    return
-  end
-
-  self:handleLayerKey(key_layer, event_data)
-end
-
-function AppState:handleLayerKey(key_layer, event_data)
-  if self.keys[key_layer] then
-    local action = self.keys[key_layer][event_data]
-
-
-    local new_event = {
-      type = self.events_by_layer[key_layer],
-      data = action
-    }
-
-    if key_layer == "editor" then
-      print("Editor:Keyboard")
-      return
+function AppState:handleKey(pressed_keys, key_layer)
+  -- Global
+  local global = false
+  for k, v in pairs(pressed_keys) do
+    if self.layers.global[k] then
+      self:handleGlobalKey(pressed_keys)
+      global = true
+      break
     end
+  end
+  if global then return end
 
-    if key_layer == "game" then
-      self.Game:newEvent(new_event)
-      return
+  -- Editor
+  local editor = false
+  for k, v in pairs(pressed_keys) do
+    if self.layers.editor[k] then
+      editor = true
+      -- self:handleGlobalKey(pressed_keys)
+      break
+    end
+  end
+  if editor then return end
+
+  -- Game
+  for k, v in pairs(pressed_keys) do
+    if self.layers.game[k] then
+      self.Game:newEvent({
+        type = game_events.KeyboardInput,
+        data =
+            pressed_keys
+
+      })
+      break
     end
   end
 end
 
 function AppState:handleGlobalKey(event_data)
-  print("Hotkey:Global: " .. event_data)
+  print("Hotkey:Global: " .. utils.inspect(event_data))
+end
+
+function AppState:releaseKeyboard()
+  self.Game:newEvent({
+    type = game_events.KeyboardInput,
+    data = nil
+  })
 end
 
 function AppState:newGameEvent(event, data)
