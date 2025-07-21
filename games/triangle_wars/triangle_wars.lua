@@ -47,12 +47,12 @@ function TriangleWarsGame:new()
   })
 
   self.ecs:add_entity({
-    { type = c_types.Enemy,        data = nil },
-    { type = c_types.Velocity,     data = { dx = 0, dy = 0 } },
-    { type = c_types.Renderable,   data = true },
-    { type = c_types.Controllable, data = true },
-    { type = c_types.Running,      data = false },
-    { type = c_types.Velocity,     data = { dx = 0, dy = 0 } },
+    { type = c_types.Enemy,      data = nil },
+    { type = c_types.Velocity,   data = { dx = 0, dy = 0 } },
+    { type = c_types.Renderable, data = true },
+    -- { type = c_types.Controllable, data = true },
+    { type = c_types.Running,    data = false },
+    { type = c_types.Velocity,   data = { dx = 0, dy = 0 } },
     {
       type = c_types.Transform,
       data = {

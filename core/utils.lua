@@ -151,4 +151,33 @@ function utils.removeFromTable(t, value_to_remove)
   end
 end
 
+function utils.firstKey(t)
+  for k, _ in pairs(t) do
+    return k or nil
+  end
+end
+
+function utils.componentLabel(type, c_types)
+  local finished = false
+
+  for k, v in pairs(c_types) do
+    if v == type then
+      finished = true
+      return k
+    end
+
+    if finished then
+      break
+    end
+  end
+end
+
+function utils.getSizeOfSet(set)
+  local count = 0
+  for _ in pairs(set) do
+    count = count + 1
+  end
+  return count
+end
+
 return utils

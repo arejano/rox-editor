@@ -1,6 +1,7 @@
 local game_state = require("core.game_state")
 local game_events = require("games.triangle_wars.game_events")
 local utils = require("core.utils")
+local c_types = require("games.triangle_wars.c_types")
 
 ---@class Ecs
 ---@field new function
@@ -11,13 +12,6 @@ local utils = require("core.utils")
 ---@field state GameState
 local Ecs = {
   state = game_state.Starting,
-  --id_counters
-  counters = {
-    entity = 1,
-    component = 1,
-    system = 1,
-    last_sys_run = 0,
-  },
   -- Entity-Component
   entities = {},
   entities_by_component = {},
@@ -26,41 +20,29 @@ local Ecs = {
   systems = {},
   systems_status = {},
   systems_by_event = {},
+  systems_by_component = {},
   -- Pool Event
   pool_event = {},
+  pool = { first = 0, last = 1 },
   -- Resources | Render, Physics | Desvinculados de Eventos
   resources = {},
   query_cache = {}, -- Inicializa cache
+  -- Chaves em string para cada componente
   components_keys = {},
+  -- Chaves em int para cada string/id de componente
+  components_ids = {},
+  components_counter = {
+  }
 }
 Ecs.__index = Ecs
 
 function Ecs:new()
-  local ecs = {
-    counters = {
-      entity = 1,
-      component = 1,
-      system = 1,
-      last_sys_run = 0,
-    },
-  }
+  local ecs = {}
   setmetatable(ecs, Ecs)
   return ecs
 end
 
-function Ecs:newId(key)
-  self.counters[key] = self.counters[key] + 1
-  return self.counters[key]
-end
-
 ---@return number|table|nil
-function Ecs:query_first(c_types, system_info, cache_key)
-  local entity = self:query(c_types)
-  if entity ~= nil and #entity > 0 then
-    return entity[1]
-  end
-  return nil
-end
 
 -- NOVA FUNÇÃO: Registra queries para cache
 function Ecs:register_query(component_types, cache_key)
@@ -71,6 +53,14 @@ function Ecs:register_query(component_types, cache_key)
     dirty = true
   }
   return cache_key
+end
+
+function Ecs:query_first(c_types, system_info, cache_key)
+  local entities = self:query(c_types)
+  if entities ~= nil then
+    return utils.firstKey(entities)
+  end
+  return nil
 end
 
 function Ecs:query(components)
@@ -99,65 +89,7 @@ function Ecs:query(components)
     i = i + 1
   end
 
-  return entities
-end
-
-function Ecs:old_query(component_types, system_info, cache_key)
-  component_types = self:getComponentsID(component_types)
-
-  if cache_key and self.query_cache[cache_key] and not self.query_cache[cache_key].dirty then
-    return self.query_cache[cache_key].result
-  end
-
-  if component_types == nil or #component_types == 0 then
-    print("component_types == NIL")
-    return {}
-  end
-
-  -- sort
-  local min_key = component_types[1]
-  if min_key == nil then return {} end
-
-  for _, c_type in ipairs(component_types) do
-    if self.entities_by_component[c_type] == nil then
-      return {}
-    end
-
-    if #self.entities_by_component[c_type] < #self.entities_by_component[min_key] then
-      min_key = c_type
-    end
-  end
-
-  local entity_set = {}
-  for _, entity in ipairs(self.entities_by_component[min_key]) do
-    entity_set[entity] = true
-  end
-
-  for _, key in ipairs(component_types) do
-    if key ~= min_key then
-      local new_set = {}
-      for _, entity in ipairs(self.entities_by_component[key]) do
-        if entity_set[entity] then
-          new_set[entity] = true
-        end
-      end
-      entity_set = new_set
-    end
-  end
-  -- end sort
-
-  local result = {}
-  for key, value in pairs(entity_set) do
-    table.insert(result, key)
-  end
-
-  -- Atualiza cache se necessário
-  if cache_key and self.query_cache[cache_key] then
-    self.query_cache[cache_key].result = result
-    self.query_cache[cache_key].dirty = false
-  end
-
-  return result
+  return entities_set
 end
 
 ---comment
@@ -175,29 +107,33 @@ end
 -- NOVA FUNÇÃO: Marca queries como dirty quando componentes são alterados
 function Ecs:register_component(entity_id, component)
   -- assert(is_valid_component(component), "Invalid Component")
-  if not self.components_keys[component.type] then
-    self.components_keys[component.type] = utils.newUUID()
-  end
 
-  local component_ID = self.components_keys[component.type]
-
+  local component_ID = self:new_component_id(component)
 
   if not self.entities_by_component[component_ID] then
     self.entities_by_component[component_ID] = {}
   end
   self.entities_by_component[component_ID][entity_id] = true
 
+  local componentName = utils.componentLabel(component.type, c_types)
+  if not self.components_counter[utils.componentLabel(component.type, c_types)] then
+    self.components_counter[componentName] = 0
+  end
 
   -- Definir os dados do componente vinculados a entidade
-  local key = entity_id .. component_ID
-  self.components[key] = component.data
+  -- local key = entity_id .. component_ID
+  -- self.components[key] = component.data
+  if not self.components[entity_id] then
+    self.components[entity_id] = {}
+  end
+  self.components[entity_id][component_ID] = component.data
 
+
+  -- Incluir na entidade o componente registrado
   if self.entities[entity_id] == nil then
     self.entities[entity_id] = {}
   end
 
-
-  -- Incluir na entidade o componente registrado
   self.entities[entity_id][component_ID] = true
 
   -- Marca queries como dirty
@@ -209,12 +145,67 @@ function Ecs:register_component(entity_id, component)
       end
     end
   end
+  self:update_component_counter(component.type)
+end
+
+function Ecs:new_component_id(component)
+  if not self.components_keys[component.type] then
+    local new_id = utils.newUUID()
+    self.components_keys[component.type] = new_id
+    self.components_ids[new_id] = component.type
+  end
+  local component_ID = self.components_keys[component.type]
+  return component_ID
 end
 
 function Ecs:remove_component(entity_id, component)
-  local component_key = self.components_keys[component.type]
-  self.entities[entity_id][component_key] = nil
-  self.entities_by_component[component_key][entity_id] = nil
+  if not entity_id then return end
+
+  local key                     = self:new_component_id(component)
+  self.entities[entity_id][key] = nil
+
+  if self.entities_by_component[key] then
+    self.entities_by_component[key][entity_id] = nil
+  end
+
+  self:update_component_counter(component.type)
+end
+
+function Ecs:update_component_counter(c_type)
+  local name = utils.componentLabel(c_type, c_types)
+  local id = self.components_keys[c_type]
+
+  if not self.components_counter[name] then
+    self.components_counter[name] = 0
+  end
+
+  if self.components_counter[name] > 0 then
+    self.components_counter[name] = utils.getSizeOfSet(self.entities_by_component[id])
+  end
+
+  self:update_system_watchs_status(id)
+end
+
+function Ecs:update_system_watchs_status(id)
+  local systems = self.systems_by_component[id]
+  if not systems then return end
+
+  for k, v in pairs(systems) do
+    local sys = self.systems[k]
+    local active = false
+
+    if sys then
+      for _, c_type in ipairs(sys.watch) do
+        local name = utils.componentLabel(c_type, c_types)
+        print(utils.inspect(self.components_counter))
+        -- if self.components_counter[name] > 0 then
+        -- active = true
+        -- end
+      end
+    end
+
+    sys.running = active
+  end
 end
 
 -- NOVA FUNÇÃO: Limpa cache para uma query específica
@@ -230,19 +221,36 @@ function Ecs:add_system(system)
   system.id = utils.newUUID()
   self.systems[system.id] = system
 
+  if system.track then
+    self.systems_status[system.id] = true
+  end
 
-  self.systems_status[system.id] = true
+
 
   if system.start then
     system:start(self)
   end
 
+  -- Registrando sistemas que escutam eventos
   if system.events then
     for _, event in pairs(system.events) do
       if self.systems_by_event[event] == nil then
         self.systems_by_event[event] = {}
       end
       table.insert(self.systems_by_event[event], system.id)
+    end
+  end
+
+  -- Registrando sistemas que executam quando componente existe
+  if system.watch then
+    for _, c in ipairs(system.watch) do
+      if not self.components_keys[c] then
+        self.components_keys[c] = utils.newUUID()
+      end
+      if not self.systems_by_component[self.components_keys[c]] then
+        self.systems_by_component[self.components_keys[c]] = {}
+      end
+      self.systems_by_component[self.components_keys[c]][system.id] = true
     end
   end
 
@@ -260,9 +268,19 @@ function Ecs:get_resource(resource_name)
   return self.resources[resource_name] or {}
 end
 
----@param event = NewEvent
 function Ecs:add_event(event)
-  table.insert(self.pool_event, event)
+  local last = self.pool.last + 1
+  self.pool.last = last
+  self.pool[last .. "_"] = event
+end
+
+function Ecs:pop_event()
+  local first = self.pool.first
+  if first > self.pool.last then return nil end
+  local event = self.pool[first .. "_"]
+  self.pool[first .. "_"] = nil
+  self.pool.first = first + 1
+  return event
 end
 
 ---@param dt number
@@ -272,23 +290,26 @@ function Ecs:update(dt, pass)
     self.delta_time = dt
   end
 
-  while #self.pool_event > 0 do
-    local event = table.remove(self.pool_event, 1)
+  -- Sistemas por evento
+  while true do
+    local event = self:pop_event()
+    if not event then break end
 
     local to_run = self.systems_by_event[event.type]
-
     if to_run == nil then return end
 
-    self.counters.last_sys_run = #to_run
     for _, s in pairs(to_run) do
       local system = self.systems[s]
-
-      -- if self.systems_status[s] == true then
       if system.process and system.running then
         system:process(self, self.delta_time, event, pass)
       end
-      -- end
     end
+  end
+
+  -- Sistemas que sempre executam quando existe componente para ele
+
+  for key, _ in pairs(self.systems_status) do
+    print("Rodando sistema sem evento", key)
   end
 end
 
@@ -296,10 +317,8 @@ end
 ---@param c_type integer
 function Ecs:get_component(entity, c_type)
   if entity == nil then return nil end
-  local component_key = self.components_keys[c_type]
   return {
-    key = entity .. component_key,
-    data = self.components[entity .. component_key]
+    data = self.components[entity][self.components_keys[c_type]]
   }
 end
 
@@ -308,7 +327,7 @@ function Ecs:set_component(entity, c_type, data)
     return
   end
 
-  self.components[entity .. c_type] = data
+  self.components[entity][self.components_keys[c_type]] = data
 end
 
 -- function Ecs:working_remove_entity(entity_id)
@@ -388,6 +407,24 @@ function Ecs:getComponentsID(components)
     table.insert(tt, self.components_keys[v])
   end
   return tt
+end
+
+function Ecs:getActiveComponents()
+  local components_ids = {}
+  for k, v in pairs(self.entities_by_component) do
+    table.insert(components_ids, {
+      label = utils.componentLabel(self.components_ids[k], c_types)
+    })
+  end
+  return components_ids
+end
+
+function Ecs:count_sys_runners()
+  local counter = 0
+  for k, v in pairs(self.systems) do
+    if v.running then counter = counter + 1 end
+  end
+  return counter
 end
 
 return Ecs

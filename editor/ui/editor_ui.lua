@@ -19,7 +19,7 @@ end
 
 
 
-local player_inspect = UIElement:new(0, 0, 500, 400)
+local player_inspect = UIElement:new(0, 0, 500, editor_ui.rootElement.rect.height)
 local data = {
   counter = 0,
   player_data = {}
@@ -34,7 +34,6 @@ player_inspect.draw = function(self)
   love.graphics.print(utils.inspect(self.data), 20, 20)
 end
 
-
 player_inspect.consumeEvent = function(self, event)
   for k, v in pairs(event) do
     self.data[k] = v
@@ -43,17 +42,17 @@ player_inspect.consumeEvent = function(self, event)
 end
 
 player_inspect.start = function(self)
-  -- local new_x = self.parent.rect.width - self.rect.width
-  -- self.rect.x = new_x
-  self.rect.width = self.parent.rect.width
+  local new_x = self.parent.rect.width - self.rect.width
+  self.rect.x = new_x
+  self.rect.height = self.parent.rect.height
 end
 
 EventManager:watch("player_update", player_inspect)
 
 player_inspect.watch_resize = function(self)
-  self.rect.width = self.parent.rect.width
-  -- local new_x = self.parent.rect.width - self.rect.width
-  -- self.rect.x = new_x
+  self.rect.height = self.parent.rect.height
+  local new_x = self.parent.rect.width - self.rect.width
+  self.rect.x = new_x
 end
 
 
