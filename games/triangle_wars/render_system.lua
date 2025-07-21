@@ -4,7 +4,7 @@ local c_types       = require("games.triangle_wars.c_types")
 local render_system = {
   running = true,
   events = { game_events.Render, },
-  requires = { c_types.Transform, c_types.Renderable },
+  requires = { c_types.Renderable },
 }
 
 function render_system:start()

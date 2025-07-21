@@ -55,7 +55,7 @@ end
 
 ---@return number|table|nil
 function Ecs:query_first(c_types, system_info, cache_key)
-  local entity = self:query(c_types, system_info, cache_key)
+  local entity = self:query(c_types)
   if entity ~= nil and #entity > 0 then
     return entity[1]
   end
@@ -73,13 +73,37 @@ function Ecs:register_query(component_types, cache_key)
   return cache_key
 end
 
-function Ecs:query(component_types, system_info, cache_key)
-  local tt = {}
-  for k, v in pairs(component_types) do
-    table.insert(tt, self.components_keys[v])
+function Ecs:query(components)
+  -- Prepare
+  components = self:getComponentsID(components)
+  local entities_set = {}
+
+  --Validator
+  if components == nil or #components == 0 then
+    print("component_types == NIL")
+    return {}
   end
 
-  component_types = tt
+  -- Find
+  for i, c_type in ipairs(components) do
+    for key, value in pairs(self.entities_by_component[c_type]) do
+      entities_set[key] = true
+    end
+  end
+
+  local entities = {}
+  -- Isso eh maior performatico que table.insert()
+  local i = 1
+  for k, v in pairs(entities_set) do
+    entities[i] = k
+    i = i + 1
+  end
+
+  return entities
+end
+
+function Ecs:old_query(component_types, system_info, cache_key)
+  component_types = self:getComponentsID(component_types)
 
   if cache_key and self.query_cache[cache_key] and not self.query_cache[cache_key].dirty then
     return self.query_cache[cache_key].result
@@ -108,7 +132,6 @@ function Ecs:query(component_types, system_info, cache_key)
   for _, entity in ipairs(self.entities_by_component[min_key]) do
     entity_set[entity] = true
   end
-  -- end sort
 
   for _, key in ipairs(component_types) do
     if key ~= min_key then
@@ -121,6 +144,7 @@ function Ecs:query(component_types, system_info, cache_key)
       entity_set = new_set
     end
   end
+  -- end sort
 
   local result = {}
   for key, value in pairs(entity_set) do
@@ -137,7 +161,6 @@ function Ecs:query(component_types, system_info, cache_key)
 end
 
 ---comment
----@param components Component
 ---@return string
 function Ecs:add_entity(components)
   -- assert(is_component(components), "Some component is invalid")
@@ -158,10 +181,12 @@ function Ecs:register_component(entity_id, component)
 
   local component_ID = self.components_keys[component.type]
 
-  if self.entities_by_component[component_ID] == nil then
+
+  if not self.entities_by_component[component_ID] then
     self.entities_by_component[component_ID] = {}
   end
-  table.insert(self.entities_by_component[component_ID], entity_id)
+  self.entities_by_component[component_ID][entity_id] = true
+
 
   -- Definir os dados do componente vinculados a entidade
   local key = entity_id .. component_ID
@@ -189,6 +214,7 @@ end
 function Ecs:remove_component(entity_id, component)
   local component_key = self.components_keys[component.type]
   self.entities[entity_id][component_key] = nil
+  self.entities_by_component[component_key][entity_id] = nil
 end
 
 -- NOVA FUNÇÃO: Limpa cache para uma query específica
@@ -285,74 +311,83 @@ function Ecs:set_component(entity, c_type, data)
   self.components[entity .. c_type] = data
 end
 
-function Ecs:working_remove_entity(entity_id)
-  local component_types = self.entities[entity_id]
-  if not component_types then return end
+-- function Ecs:working_remove_entity(entity_id)
+--   local component_types = self.entities[entity_id]
+--   if not component_types then return end
 
-  for _, c_type in ipairs(component_types) do
-    -- Remover da lista de entidades por componente
-    local entities = self.entities_by_component[c_type]
-    if entities then
-      for i = #entities, 1, -1 do
-        if entities[i] == entity_id then
-          table.remove(entities, i)
-          break
-        end
-      end
-    end
+--   for _, c_type in ipairs(component_types) do
+--     -- Remover da lista de entidades por componente
+--     local entities = self.entities_by_component[c_type]
+--     if entities then
+--       for i = #entities, 1, -1 do
+--         if entities[i] == entity_id then
+--           table.remove(entities, i)
+--           break
+--         end
+--       end
+--     end
 
-    -- Remover do dicionário de componentes
-    self.components[entity_id .. c_type] = nil
+--     -- Remover do dicionário de componentes
+--     self.components[entity_id .. c_type] = nil
 
-    -- Marcar queries como dirty
-    for cache_key, cached_query in pairs(self.query_cache) do
-      for _, query_type in ipairs(cached_query.types) do
-        if query_type == c_type then
-          cached_query.dirty = true
-          break
-        end
-      end
-    end
+--     -- Marcar queries como dirty
+--     for cache_key, cached_query in pairs(self.query_cache) do
+--       for _, query_type in ipairs(cached_query.types) do
+--         if query_type == c_type then
+--           cached_query.dirty = true
+--           break
+--         end
+--       end
+--     end
+--   end
+
+--   -- Finalmente, remove a referência da entidade
+--   self.entities[entity_id] = nil
+-- end
+
+-- function Ecs:remove_entity(entity_id)
+--   if not self.entities[entity_id] then return false end
+
+--   -- Otimização: tabela temporária para tipos de componentes
+--   local component_types = {}
+--   for _, ct in ipairs(self.entities[entity_id]) do
+--     component_types[ct] = true
+--   end
+
+--   -- Remove componentes
+--   for ct, _ in pairs(component_types) do
+--     self.components[entity_id .. ct] = nil
+
+--     -- Remove de entities_by_component
+--     local ebct = self.entities_by_component[ct]
+--     if ebct then
+--       for i = #ebct, 1, -1 do
+--         if ebct[i] == entity_id then
+--           table.remove(ebct, i)
+--         end
+--       end
+--     end
+
+--     -- Invalida cache
+--     for cache_key, cached_query in pairs(self.query_cache) do
+--       if component_types[cached_query.types[1]] then -- Verificação otimizada
+--         cached_query.dirty = true
+--       end
+--     end
+--   end
+
+--   self.entities[entity_id] = nil
+--   -- self:add_event({ type = game_events.EntityRemoved, data = entity_id })
+--   return true
+-- end
+
+-- Utils
+function Ecs:getComponentsID(components)
+  local tt = {}
+  for k, v in pairs(components) do
+    table.insert(tt, self.components_keys[v])
   end
-
-  -- Finalmente, remove a referência da entidade
-  self.entities[entity_id] = nil
-end
-
-function Ecs:remove_entity(entity_id)
-  if not self.entities[entity_id] then return false end
-
-  -- Otimização: tabela temporária para tipos de componentes
-  local component_types = {}
-  for _, ct in ipairs(self.entities[entity_id]) do
-    component_types[ct] = true
-  end
-
-  -- Remove componentes
-  for ct, _ in pairs(component_types) do
-    self.components[entity_id .. ct] = nil
-
-    -- Remove de entities_by_component
-    local ebct = self.entities_by_component[ct]
-    if ebct then
-      for i = #ebct, 1, -1 do
-        if ebct[i] == entity_id then
-          table.remove(ebct, i)
-        end
-      end
-    end
-
-    -- Invalida cache
-    for cache_key, cached_query in pairs(self.query_cache) do
-      if component_types[cached_query.types[1]] then -- Verificação otimizada
-        cached_query.dirty = true
-      end
-    end
-  end
-
-  self.entities[entity_id] = nil
-  -- self:add_event({ type = game_events.EntityRemoved, data = entity_id })
-  return true
+  return tt
 end
 
 return Ecs

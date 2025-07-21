@@ -157,12 +157,11 @@ function UIElement:update(_)
   -- end
 end
 
-function UIElement:addChilds(...)
-  for i, v in ipairs(...) do
-    print("Wow")
-    seld:addChild(v)
-  end
-end
+-- function UIElement:addChilds(...)
+--   for i, v in ipairs(...) do
+--     self:addChild(v)
+--   end
+-- end
 
 -- Adiciona um child a este elemento
 function UIElement:addChild(child)

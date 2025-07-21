@@ -10,6 +10,7 @@ local c_types = utils.make_enum({
   "Energy",
   "Dead",
   "Renderable",
+  "Enemy"
 })
 
 return c_types

@@ -18,6 +18,7 @@ editor_ui.rootElement.draw = function(self)
 end
 
 
+
 local player_inspect = UIElement:new(0, 0, 500, 400)
 local data = {
   counter = 0,
@@ -44,11 +45,13 @@ end
 player_inspect.start = function(self)
   -- local new_x = self.parent.rect.width - self.rect.width
   -- self.rect.x = new_x
+  self.rect.width = self.parent.rect.width
 end
 
 EventManager:watch("player_update", player_inspect)
 
 player_inspect.watch_resize = function(self)
+  self.rect.width = self.parent.rect.width
   -- local new_x = self.parent.rect.width - self.rect.width
   -- self.rect.x = new_x
 end

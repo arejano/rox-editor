@@ -5,7 +5,8 @@ local c_types         = require("games.triangle_wars.c_types")
 local keyboard_system = {
   running = true,
   events = { game_events.KeyboardInput },
-  requires = { c_types.Velocity, c_types.Controllable },
+  requires = { c_types.Controllable },
+  -- requires = { c_types.Enemy },
   key_vectors = {
     ["w"] = { dx = 0, dy = -1 }, --Up
     ["a"] = { dx = -1, dy = 0 }, --Left
@@ -23,9 +24,7 @@ function keyboard_system:process(ecs, dt, event, pass)
     ecs:add_event({ type = game_events.StopPlayerMove, data = nil })
     return
   end
-
   local entity = ecs:query_first(self.requires)
-  print(utils.inspect(entity))
 
   if entity == nil then return end
 
@@ -39,11 +38,11 @@ function keyboard_system:process(ecs, dt, event, pass)
   end
 
   if pressed_keys["q"] then
-    ecs:register_component(entity, { type = c_types.InMovement, data = true })
+    ecs:register_component(entity, { type = c_types.Renderable, data = true })
   end
 
   if pressed_keys["e"] then
-    ecs:remove_component(entity, { type = c_types.InMovement, data = true })
+    ecs:remove_component(entity, { type = c_types.Renderable, data = true })
   end
 
 
@@ -53,7 +52,9 @@ function keyboard_system:process(ecs, dt, event, pass)
     velocity = velocity,
     running = running,
     pressed_keys = pressed_keys,
-    player_components = ecs.entities[entity]
+    player_components = ecs.entities[entity],
+    -- entities_by_component = ecs.entities_by_component,
+    -- new_entities_by_component = ecs.new_entities_by_component
   })
 end
 
