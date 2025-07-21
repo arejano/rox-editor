@@ -27,6 +27,8 @@ local AppState    = {
       ["w"] = "game/up",
       ["s"] = "game/down",
       ["d"] = "game/right",
+      ["q"] = "game/register_component",
+      ["e"] = "game/remove_component",
       ["lshift"] = "game/run",
     }
   },

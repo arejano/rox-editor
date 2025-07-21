@@ -9,6 +9,7 @@ element.isDragable = true
 
 local text = UIElement:new(5, 5, 260, 20)
 text.data = { label = "FPS!!!!", update_counter = 0 }
+text.transpass = true
 
 text.draw = function(self)
   love.graphics.setColor(1, 1, 1)

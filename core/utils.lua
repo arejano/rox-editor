@@ -141,4 +141,14 @@ function utils.getKeys(input)
   return result
 end
 
+function utils.removeFromTable(t, value_to_remove)
+  for i = 1, #t do
+    if t[i] == value_to_remove then
+      t[i] = t[#t] -- move o último para a posição atual
+      t[#t] = nil  -- remove o último
+      -- break        -- se quiser remover só uma ocorrência
+    end
+  end
+end
+
 return utils

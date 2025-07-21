@@ -18,20 +18,23 @@ editor_ui.rootElement.draw = function(self)
 end
 
 
-local player_inspect = UIElement:new(0, 0, 200, 600)
+local player_inspect = UIElement:new(0, 0, 500, 400)
 local data = {
   counter = 0,
   player_data = {}
 }
 player_inspect:bindData(data)
+player_inspect.isDragable = true
 player_inspect.draw = function(self)
+  love.graphics.setColor(love.math.colorFromBytes(0, 92, 75))
+  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+
   love.graphics.setColor(1, 1, 1)
-  love.graphics.print(utils.inspect(self.data), 0, 0)
+  love.graphics.print(utils.inspect(self.data), 20, 20)
 end
 
 
 player_inspect.consumeEvent = function(self, event)
-  print("WoW")
   for k, v in pairs(event) do
     self.data[k] = v
   end
@@ -39,15 +42,15 @@ player_inspect.consumeEvent = function(self, event)
 end
 
 player_inspect.start = function(self)
-  local new_x = self.parent.rect.width - self.rect.width
-  self.rect.x = new_x
+  -- local new_x = self.parent.rect.width - self.rect.width
+  -- self.rect.x = new_x
 end
 
 EventManager:watch("player_update", player_inspect)
 
 player_inspect.watch_resize = function(self)
-  local new_x = self.parent.rect.width - self.rect.width
-  self.rect.x = new_x
+  -- local new_x = self.parent.rect.width - self.rect.width
+  -- self.rect.x = new_x
 end
 
 

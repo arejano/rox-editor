@@ -26,9 +26,10 @@ function TriangleWarsGame:new()
   self.ecs:add_system(require("games.triangle_wars.player_movement"))
 
   self.ecs:add_entity({
-    { type = c_types.Player,   data = true },
-    { type = c_types.Running,   data = true },
-    { type = c_types.Velocity, data = { dx = 0, dy = 0 } },
+    { type = c_types.Player,       data = true },
+    { type = c_types.Controllable, data = true },
+    { type = c_types.Running,      data = false },
+    { type = c_types.Velocity,     data = { dx = 0, dy = 0 } },
     {
       type = c_types.Transform,
       data = {
@@ -42,6 +43,10 @@ function TriangleWarsGame:new()
         }
       }
     }
+  })
+
+  self.ecs:add_entity({
+    { type = c_types.Velocity, data = { dx = 0, dy = 0 } },
   })
 
   return setmetatable(self, TriangleWarsGame)

@@ -30,7 +30,8 @@ local Ecs = {
   pool_event = {},
   -- Resources | Render, Physics | Desvinculados de Eventos
   resources = {},
-  query_cache = {} -- Inicializa cache
+  query_cache = {}, -- Inicializa cache
+  components_keys = {},
 }
 Ecs.__index = Ecs
 
@@ -52,9 +53,16 @@ function Ecs:newId(key)
   return self.counters[key]
 end
 
----@return number|nil
+---@return number|table|nil
 function Ecs:query_first(c_types, system_info, cache_key)
-  return self:query(c_types, system_info, cache_key)[1]
+  local entity = self:query(c_types, system_info, cache_key)
+  if entity ~= nil and #entity > 0 then
+    print("Entidade nao encontrada")
+    return nil
+  else
+    print("entidade encontrada")
+    return entity
+  end
 end
 
 -- NOVA FUNÇÃO: Registra queries para cache
@@ -69,18 +77,34 @@ function Ecs:register_query(component_types, cache_key)
 end
 
 function Ecs:query(component_types, system_info, cache_key)
+  print("query")
+  local tt = {}
+  for k, v in pairs(component_types) do
+    table.insert(tt, self.components_keys[v])
+  end
+
+  component_types = tt
+
   if cache_key and self.query_cache[cache_key] and not self.query_cache[cache_key].dirty then
     return self.query_cache[cache_key].result
   end
 
-  if component_types == nil or #component_types == 0 then return {} end
+  if component_types == nil or #component_types == 0 then
+    print("component_types == NIL")
+    return {}
+  end
 
   -- sort
   local min_key = component_types[1]
   if min_key == nil then return {} end
 
+  -- print(utils.inspect(self.entities_by_component))
+
   for _, c_type in ipairs(component_types) do
-    if self.entities_by_component[c_type] == nil then return {} end
+    if self.entities_by_component[c_type] == nil then
+      return {}
+    end
+
     if #self.entities_by_component[c_type] < #self.entities_by_component[min_key] then
       min_key = c_type
     end
@@ -88,6 +112,7 @@ function Ecs:query(component_types, system_info, cache_key)
 
   local entity_set = {}
   for _, entity in ipairs(self.entities_by_component[min_key]) do
+    print(entity)
     entity_set[entity] = true
   end
 
@@ -124,32 +149,39 @@ end
 ---@return string
 function Ecs:add_entity(components)
   -- assert(is_component(components), "Some component is invalid")
-
-  -- local new_id = self:newId("entity")
-  local new_id = utils.newUUID();
+  local entity_id = utils.newUUID();
 
   for _, component in ipairs(components) do
-    self:register_component(new_id, component)
+    self:register_component(entity_id, component)
   end
-  return new_id
+  return entity_id
 end
 
 -- NOVA FUNÇÃO: Marca queries como dirty quando componentes são alterados
-function Ecs:register_component(entity, component)
+function Ecs:register_component(entity_id, component)
   -- assert(is_valid_component(component), "Invalid Component")
-
-  if self.entities_by_component[component.type] == nil then
-    self.entities_by_component[component.type] = {}
+  if not self.components_keys[component.type] then
+    self.components_keys[component.type] = utils.newUUID()
   end
-  table.insert(self.entities_by_component[component.type], entity)
 
-  local key = entity .. component.type
+  local component_ID = self.components_keys[component.type]
+
+  if self.entities_by_component[component_ID] == nil then
+    self.entities_by_component[component_ID] = {}
+  end
+  table.insert(self.entities_by_component[component_ID], entity_id)
+
+  -- Definir os dados do componente vinculados a entidade
+  local key = entity_id .. component_ID
   self.components[key] = component.data
 
-  if self.entities[entity] == nil then
-    self.entities[entity] = {}
+  if self.entities[entity_id] == nil then
+    self.entities[entity_id] = {}
   end
-  table.insert(self.entities[entity], component.type)
+
+
+  -- Incluir na entidade o componente registrado
+  self.entities[entity_id][component_ID] = true
 
   -- Marca queries como dirty
   for cache_key, cached_query in pairs(self.query_cache) do
@@ -162,6 +194,11 @@ function Ecs:register_component(entity, component)
   end
 end
 
+function Ecs:remove_component(entity_id, component)
+  local component_key = self.components_keys[component.type]
+  self.entities[entity_id][component_key] = nil
+end
+
 -- NOVA FUNÇÃO: Limpa cache para uma query específica
 function Ecs:invalidate_query_cache(cache_key)
   if self.query_cache[cache_key] then
@@ -169,35 +206,14 @@ function Ecs:invalidate_query_cache(cache_key)
   end
 end
 
-function Ecs:old_register_component(entity, component)
-  -- assert(is_valid_component(component), "Invalid Component")
-
-  -- Cria a tabela caso nao exista
-  if self.entities_by_component[component.type] == nil then
-    self.entities_by_component[component.type] = {}
-  end
-  table.insert(self.entities_by_component[component.type], entity)
-
-  local key = entity .. component.type
-  if self.components[key] == nil then
-    self.components[key] = {}
-  end
-  self.components[key] = component.data
-
-  if self.entities[entity] == nil then
-    self.entities[entity] = {}
-  end
-  table.insert(self.entities[entity], component.type)
-
-  -- Ecs:update_system_state()
-end
-
 function Ecs:add_system(system)
   -- assert(is_valid_system(system), "system need a PROCESS method")
-  local new_id = self:newId("system")
-  self.systems[new_id] = system
+  -- local new_id = self:newId("system")
+  system.id = utils.newUUID()
+  self.systems[system.id] = system
 
-  self.systems_status[new_id] = true
+
+  self.systems_status[system.id] = true
 
   if system.start then
     system:start(self)
@@ -208,11 +224,11 @@ function Ecs:add_system(system)
       if self.systems_by_event[event] == nil then
         self.systems_by_event[event] = {}
       end
-      table.insert(self.systems_by_event[event], new_id)
+      table.insert(self.systems_by_event[event], system.id)
     end
   end
 
-  return new_id
+  return system.id
 end
 
 function Ecs:add_resource(type, resource)
@@ -249,11 +265,11 @@ function Ecs:update(dt, pass)
     for _, s in pairs(to_run) do
       local system = self.systems[s]
 
-      if self.systems_status[s] == true then
-        if system.process then
-          system:process(self, self.delta_time, event, pass)
-        end
+      -- if self.systems_status[s] == true then
+      if system.process and system.running then
+        system:process(self, self.delta_time, event, pass)
       end
+      -- end
     end
   end
 end

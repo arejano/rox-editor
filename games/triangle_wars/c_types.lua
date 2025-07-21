@@ -3,7 +3,12 @@ local c_types = utils.make_enum({
   "Player",
   "Velocity",
   "Running",
-  "Transform"
+  "Transform",
+  "Controllable",
+  "InMovement",
+  "Bullet",
+  "Energy",
+  "Dead"
 })
 
 return c_types
