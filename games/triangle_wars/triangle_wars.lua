@@ -27,6 +27,7 @@ function TriangleWarsGame:new()
 
   self.ecs:add_entity({
     { type = c_types.Player,       data = true },
+    { type = c_types.Renderable,   data = true },
     { type = c_types.Controllable, data = true },
     { type = c_types.Running,      data = false },
     { type = c_types.Velocity,     data = { dx = 0, dy = 0 } },
@@ -46,7 +47,24 @@ function TriangleWarsGame:new()
   })
 
   self.ecs:add_entity({
-    { type = c_types.Velocity, data = { dx = 0, dy = 0 } },
+    { type = c_types.Velocity,     data = { dx = 0, dy = 0 } },
+    { type = c_types.Renderable,   data = true },
+    { type = c_types.Controllable, data = true },
+    { type = c_types.Running,      data = false },
+    { type = c_types.Velocity,     data = { dx = 0, dy = 0 } },
+    {
+      type = c_types.Transform,
+      data = {
+        position = { x = 300, y = 300 },
+        scale = { sx = 0, sy = 0 },
+        angle = 0,
+        rotation = { ox = 0, oy = 0, },
+        size = {
+          width = 100,
+          height = 100
+        }
+      }
+    }
   })
 
   return setmetatable(self, TriangleWarsGame)

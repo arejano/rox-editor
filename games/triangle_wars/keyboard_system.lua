@@ -19,42 +19,42 @@ end
 
 function keyboard_system:process(ecs, dt, event, pass)
   local pressed_keys = event.data
-  -- if pressed_keys == nil then
-  --   ecs:add_event({ type = game_events.StopPlayerMove, data = nil })
-  --   return
-  -- end
+  if pressed_keys == nil then
+    ecs:add_event({ type = game_events.StopPlayerMove, data = nil })
+    return
+  end
 
   local entity = ecs:query_first(self.requires)
+  print(utils.inspect(entity))
 
-  -- if entity == nil then return end
-  return
+  if entity == nil then return end
 
-  -- local velocity = { dx = 0, dy = 0 }
-  -- local running = pressed_keys["lshift"]
-  -- for key, _ in pairs(pressed_keys) do
-  --   if self.key_vectors[key] then
-  --     velocity.dx = velocity.dx + self.key_vectors[key].dx
-  --     velocity.dy = velocity.dy + self.key_vectors[key].dy
-  --   end
-  -- end
+  local velocity = { dx = 0, dy = 0 }
+  local running = pressed_keys["lshift"]
+  for key, _ in pairs(pressed_keys) do
+    if self.key_vectors[key] then
+      velocity.dx = velocity.dx + self.key_vectors[key].dx
+      velocity.dy = velocity.dy + self.key_vectors[key].dy
+    end
+  end
 
-  -- if pressed_keys["q"] then
-  --   ecs:register_component(entity, { type = c_types.Dead, data = true })
-  -- end
+  if pressed_keys["q"] then
+    ecs:register_component(entity, { type = c_types.InMovement, data = true })
+  end
 
-  -- if pressed_keys["e"] then
-  --   ecs:remove_component(entity, { type = c_types.Dead, data = true })
-  -- end
+  if pressed_keys["e"] then
+    ecs:remove_component(entity, { type = c_types.InMovement, data = true })
+  end
 
 
-  -- ecs:set_component(entity, c_types.Running, running)
-  -- ecs:set_component(entity, c_types.Velocity, velocity)
-  -- EventManager:emit("player_update", {
-  --   velocity = velocity,
-  --   running = running,
-  --   pressed_keys = pressed_keys,
-  --   player_components = ecs.entities[entity]
-  -- })
+  ecs:set_component(entity, c_types.Running, running)
+  ecs:set_component(entity, c_types.Velocity, velocity)
+  EventManager:emit("player_update", {
+    velocity = velocity,
+    running = running,
+    pressed_keys = pressed_keys,
+    player_components = ecs.entities[entity]
+  })
 end
 
 return keyboard_system

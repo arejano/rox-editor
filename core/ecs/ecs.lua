@@ -57,12 +57,9 @@ end
 function Ecs:query_first(c_types, system_info, cache_key)
   local entity = self:query(c_types, system_info, cache_key)
   if entity ~= nil and #entity > 0 then
-    print("Entidade nao encontrada")
-    return nil
-  else
-    print("entidade encontrada")
-    return entity
+    return entity[1]
   end
+  return nil
 end
 
 -- NOVA FUNÇÃO: Registra queries para cache
@@ -77,7 +74,6 @@ function Ecs:register_query(component_types, cache_key)
 end
 
 function Ecs:query(component_types, system_info, cache_key)
-  print("query")
   local tt = {}
   for k, v in pairs(component_types) do
     table.insert(tt, self.components_keys[v])
@@ -98,8 +94,6 @@ function Ecs:query(component_types, system_info, cache_key)
   local min_key = component_types[1]
   if min_key == nil then return {} end
 
-  -- print(utils.inspect(self.entities_by_component))
-
   for _, c_type in ipairs(component_types) do
     if self.entities_by_component[c_type] == nil then
       return {}
@@ -112,10 +106,8 @@ function Ecs:query(component_types, system_info, cache_key)
 
   local entity_set = {}
   for _, entity in ipairs(self.entities_by_component[min_key]) do
-    print(entity)
     entity_set[entity] = true
   end
-
   -- end sort
 
   for _, key in ipairs(component_types) do
@@ -278,9 +270,10 @@ end
 ---@param c_type integer
 function Ecs:get_component(entity, c_type)
   if entity == nil then return nil end
+  local component_key = self.components_keys[c_type]
   return {
-    key = entity .. c_type,
-    data = self.components[entity .. c_type]
+    key = entity .. component_key,
+    data = self.components[entity .. component_key]
   }
 end
 

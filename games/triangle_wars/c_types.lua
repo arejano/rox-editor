@@ -8,7 +8,8 @@ local c_types = utils.make_enum({
   "InMovement",
   "Bullet",
   "Energy",
-  "Dead"
+  "Dead",
+  "Renderable",
 })
 
 return c_types

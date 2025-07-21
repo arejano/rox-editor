@@ -3,7 +3,7 @@ local utils              = require("core.utils")
 local c_types            = require("games.triangle_wars.c_types")
 
 local player_move_system = {
-  running = false,
+  running = true,
   events = { game_events.StopPlayerMove, game_events.PlayerIsMoving },
   requires = { c_types.Transform, c_types.Player, c_types.Velocity },
 }
