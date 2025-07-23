@@ -1,69 +1,59 @@
-local MoveDirection = require 'models.types'.MoveDirection
+local game_events = require("games.triangle_wars.game_events")
+local utils       = require("core.utils")
+local c_types     = require("games.triangle_wars.c_types")
 
-local movement_system = {
-  events = { game_events.Tick },
-  requires = {
-    c_types.Controllable,
-    c_types.Transform,
-    c_types.FacingDirection,
-    c_types.Velocity
-  }
+local move_system = {
+  track = false,
+  running = true,
+  requires = { c_types.Moving },
+  watch = { c_types.Moving },
+  counter = 0,
 }
 
-function movement_system:process(ecs, dt)
-  local bound_id = ecs:query_first({ c_types.Bounds })
-  ---@type BoundData
-  local bound = ecs:get_component(bound_id, c_types.Bounds).data
+function move_system:start()
+end
 
-  if bound == nil then return end
+function move_system:process(ecs, dt, event, pass)
+  self.counter = self.counter + 1
 
-
-  for _, entity in ipairs(ecs:query(self.requires)) do
+  for entity in pairs(ecs:query(self.requires)) do
     local velocity = ecs:get_component(entity, c_types.Velocity).data
     local transform = ecs:get_component(entity, c_types.Transform).data
-    local facing = ecs:get_component(entity, c_types.FacingDirection).data
     local speed = ecs:get_component(entity, c_types.Speed).data
+    local running = ecs:get_component(entity, c_types.Running).data
 
-    -- print(velocity, transform, facing, speed)
+    local inMovement = false
 
     if velocity.dx ~= 0 or velocity.dy ~= 0 then
-      -- Normaliza o vetor para movimento diagonal
+      -- Normaliza o vetor
       local length = math.sqrt(velocity.dx ^ 2 + velocity.dy ^ 2)
-      velocity.dx = (velocity.dx / length) * speed * dt
-      velocity.dy = (velocity.dy / length) * speed * dt
+      if length > 0 then
+        local norm_dx = velocity.dx / length
+        local norm_dy = velocity.dy / length
 
-      -- Atualiza posição
-      local new_x = transform.position.x + velocity.dx
-      local new_y = transform.position.y + velocity.dy
+        -- Aplica movimento
+        local speed = running and speed * 5 or speed
+        transform.position.x = transform.position.x + norm_dx * speed * dt
+        transform.position.y = transform.position.y + norm_dy * speed * dt
 
-
-      if (new_x > bound.x) and (new_x < bound.width + 96) and (new_y > bound.y) and (new_y < (bound.height + 96)) then
-        transform.position.x = new_x
-        transform.position.y = new_y
+        inMovement = true
       end
-
-      -- Atualiza direção
-      facing.angle = math.atan2(velocity.dy, velocity.dx)
-      facing.lastCardinal = self:angle_to_cardinal(facing.angle)
-      ecs:set_component(entity, c_types.InMovement, true)
-      -- ecs:set_component(entity, c_types.Transform, transform)
-    else
-      ecs:set_component(entity, c_types.InMovement, false)
     end
+
+    -- Atualiza o estado de movimento se mudou
+    local wasMoving = ecs:get_component(entity, c_types.Moving)
+    if inMovement and not wasMoving then
+      ecs:register_component(entity, { type = c_types.Moving, data = true })
+    elseif not inMovement and wasMoving then
+      ecs:remove_component(entity, c_types.Moving)
+    end
+
+    -- Atualiza o transform com a nova posição
+    ecs:set_component(entity, c_types.Transform, transform)
   end
 end
 
-function movement_system:angle_to_cardinal(angle)
-  angle = angle % (2 * math.pi)
-  if angle < math.pi / 4 or angle > 7 * math.pi / 4 then
-    return MoveDirection.Right
-  elseif angle < 3 * math.pi / 4 then
-    return MoveDirection.Down
-  elseif angle < 5 * math.pi / 4 then
-    return MoveDirection.Left
-  else
-    return MoveDirection.Up
-  end
+function move_system:toggle_state(ecs)
 end
 
-return movement_system
+return move_system

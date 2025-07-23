@@ -1,4 +1,3 @@
-local Systems = require("games.triangle_wars.systems")
 local Ecs = require("core.ecs.ecs")
 local game_state = require("core.game_state")
 local utils = require("core.utils")
@@ -23,7 +22,8 @@ function TriangleWarsGame:new()
 
   self.ecs:add_system(require("games.triangle_wars.keyboard_system"))
   self.ecs:add_system(require("games.triangle_wars.render_system"))
-  self.ecs:add_system(require("games.triangle_wars.player_movement"))
+  self.ecs:add_system(require("games.triangle_wars.movement_system"))
+  self.ecs:add_system(require("games.triangle_wars.spatial_index_system"))
 
   self.ecs:add_entity({
     { type = c_types.Player,       data = true },
@@ -39,8 +39,8 @@ function TriangleWarsGame:new()
         angle = 0,
         rotation = { ox = 0, oy = 0, },
         size = {
-          width = 100,
-          height = 100
+          width = 32,
+          height = 32
         }
       }
     }
@@ -51,9 +51,10 @@ function TriangleWarsGame:new()
     { type = c_types.Velocity,   data = { dx = 0, dy = 0 } },
     { type = c_types.Renderable, data = true },
     -- { type = c_types.Controllable, data = true },
+    -- { type = c_types.MovingBlocked, data = true },
     { type = c_types.Running,    data = false },
     { type = c_types.Velocity,   data = { dx = 0, dy = 0 } },
-    { type = c_types.Speed,      data = 200 },
+    { type = c_types.Speed,      data = 100 },
     {
       type = c_types.Transform,
       data = {

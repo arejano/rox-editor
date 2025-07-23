@@ -6,6 +6,7 @@ local keyboard_system = {
   running = true,
   events = { game_events.KeyboardInput },
   requires = { c_types.Controllable },
+  ignores = { c_types.MovingBlocked },
   key_vectors = {
     ["w"] = { dx = 0, dy = -1 }, --Up
     ["a"] = { dx = -1, dy = 0 }, --Left
@@ -23,7 +24,7 @@ function keyboard_system:process(ecs, dt, event, pass)
 
   -- local entity = ecs:query_first(self.requires)
 
-  for entity in pairs(ecs:query(self.requires)) do
+  for entity in pairs(ecs:query(self.requires, self.ignores)) do
     local inMovement = false
     if entity == nil then return end
 
@@ -31,7 +32,7 @@ function keyboard_system:process(ecs, dt, event, pass)
 
     if pressed_keys == nil then
       ecs:remove_component(entity, c_types.Running)
-      ecs:remove_component(entity, c_types.InMovement)
+      ecs:remove_component(entity, c_types.Moving)
       ecs:set_component(entity, c_types.Velocity, velocity)
     else
       for key, _ in pairs(pressed_keys) do
@@ -46,7 +47,9 @@ function keyboard_system:process(ecs, dt, event, pass)
       ecs:set_component(entity, c_types.Velocity, velocity)
 
       if pressed_keys["q"] then
-        ecs:register_component(entity, { type = c_types.InMovement, data = true })
+        local transform = ecs:get_component(entity, c_types.Transform).data
+        transform.position.x = 0
+        transform.position.y = 0
       end
 
       if pressed_keys["e"] then
@@ -58,30 +61,24 @@ function keyboard_system:process(ecs, dt, event, pass)
         ecs:remove_component(entity, c_types.Running)
       end
 
-
-      -- if velocity.dx ~= 0 or velocity.dy ~= 0 then
-      --   inMovement = true
-      -- end
-      -- if inMovement ~= self.inMovement then
-      --   self.inMovement = inMovement
-      --   print("wow")
-      ecs:register_component(entity, { type = c_types.InMovement, data = true })
-      -- end
+      ecs:register_component(entity, { type = c_types.Moving, data = true })
     end
 
-    EventManager:emit("player_update", {
-      moving = self.inMovement,
-      velocity = velocity,
-      -- running = running,
-      -- pressed_keys = pressed_keys,
-      -- player_components = ecs.entities,
-      qt_sistemas_ativos = ecs:count_sys_runners(),
-      -- system_ct = ecs.systems_by_component,
-      -- ent_by_ct = ecs.entities_by_component,
-      -- componentes = ecs:getActiveComponents(),
-      cp = ecs.components,
-      counters = ecs.components_counter
-    })
+    -- EventManager:emit("player_update", {
+    --   -- moving = self.inMovement,
+    --   -- velocity = velocity,
+    --   -- running = running,
+    --   -- pressed_keys = pressed_keys,
+    --   -- player_components = ecs.entities,
+    --   -- qt_sistemas_ativos = ecs:count_sys_runners(),
+    --   -- system_ct = ecs.systems_by_component,
+    --   ent_by_ct = ecs.entities_by_component,
+    --   -- componentes = ecs:getActiveComponents(),
+    --   -- cp = ecs.components,
+    --   -- counters = ecs.components_counter,
+    --   entities = ecs.entities,
+    --   dirtys = ecs.dirty_entities,
+    -- })
   end
 end
 

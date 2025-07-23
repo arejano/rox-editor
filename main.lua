@@ -6,7 +6,7 @@ local utils = require("core.utils")
 
 local AppState = require("app_state")
 
-local tri_game = require("games.triangle_wars.triangle_wars")
+local tri_game = require("games.triangle_wars.game")
 
 -- Sempre primeiro os eventos
 EventManager = _eventManager:new()

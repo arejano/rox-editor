@@ -14,6 +14,7 @@ local Ecs = {
   state = game_state.Starting,
   -- Entity-Component
   entities = {},
+  dirty_entities = {},
   entities_by_component = {},
   components = {},
   -- systems
@@ -63,33 +64,48 @@ function Ecs:query_first(c_types, system_info, cache_key)
   return nil
 end
 
-function Ecs:query(components)
+function Ecs:query(components, ignores)
+  local entity_set_result = {}
+
   -- Prepare
-  components = self:getComponentsID(components)
-  local entities_set = {}
+  components = self:get_components_ids(components)
+
 
   --Validator
-  if components == nil or #components == 0 then
+  if components == nil then
     print("component_types == NIL")
     return {}
   end
 
   -- Find
-  for i, c_type in ipairs(components) do
-    for key, value in pairs(self.entities_by_component[c_type]) do
-      entities_set[key] = true
+  for c_id, v in pairs(components) do
+    for entity_id, value in pairs(self.entities_by_component[c_id]) do
+      entity_set_result[entity_id] = true
     end
   end
 
-  local entities = {}
-  -- Isso eh maior performatico que table.insert()
-  local i = 1
-  for k, v in pairs(entities_set) do
-    entities[i] = k
-    i = i + 1
+  -- Remover ignorados
+  if ignores then
+    local ign = self:get_components_ids(ignores)
+    for c_id, v in pairs(ign) do
+      if self.entities_by_component[c_id] then
+        for entity_id, value in pairs(self.entities_by_component[c_id]) do
+          entity_set_result[entity_id] = nil
+        end
+      end
+    end
   end
 
-  return entities_set
+
+  -- local entities = {}
+  -- Isso eh maior performatico que table.insert()
+  -- local i = 1
+  -- for k, v in pairs(entities_set) do
+  --   entities[i] = k
+  --   i = i + 1
+  -- end
+
+  return entity_set_result
 end
 
 ---comment
@@ -101,6 +117,8 @@ function Ecs:add_entity(components)
   for _, component in ipairs(components) do
     self:register_component(entity_id, component)
   end
+
+  self.dirty_entities[entity_id] = true
   return entity_id
 end
 
@@ -142,6 +160,7 @@ function Ecs:register_component(entity_id, component)
       end
     end
   end
+  self.dirty_entities[entity_id] = true
   self:update_component_counter(component.type)
 end
 
@@ -164,6 +183,7 @@ function Ecs:remove_component(entity_id, type)
     self.entities_by_component[key][entity_id] = nil
   end
 
+  self.dirty_entities[entity_id] = true
   self:update_component_counter(type)
 end
 
@@ -308,6 +328,13 @@ function Ecs:update(dt, pass)
   for key, _ in pairs(self.systems_status) do
     self.systems[key]:process(self, self.delta_time)
   end
+
+  if utils.getSizeOfSet(self.dirty_entities) then
+    self:add_event({
+      type = game_events.ProcessDirtyEntities,
+      data = nil,
+    })
+  end
 end
 
 ---@param entity integer
@@ -325,6 +352,7 @@ function Ecs:set_component(entity, c_type, data)
   end
 
   self.components[entity][self.components_keys[c_type]] = data
+  self.dirty_entities[entity] = true
 end
 
 -- function Ecs:working_remove_entity(entity_id)
@@ -398,12 +426,18 @@ end
 -- end
 
 -- Utils
-function Ecs:getComponentsID(components)
-  local tt = {}
+function Ecs:get_components_ids(components)
+  local result = {}
+
+  if not components then return result end
+
   for k, v in pairs(components) do
-    table.insert(tt, self.components_keys[v])
+    local c_key = self:new_component_id(v)
+    -- table.insert(tt, c_key)
+    result[c_key] = true
+    -- print(utils.inspect(tt))
   end
-  return tt
+  return result
 end
 
 function Ecs:getActiveComponents()
@@ -439,6 +473,10 @@ function Ecs:getEntityInfo(id)
   }
 
   return result
+end
+
+function Ecs:entity_has_component(entity_id, c_type)
+  return self.entities[entity_id][self.components_keys[c_type]] ~= nil
 end
 
 return Ecs
