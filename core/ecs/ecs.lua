@@ -108,7 +108,7 @@ end
 function Ecs:register_component(entity_id, component)
   -- assert(is_valid_component(component), "Invalid Component")
 
-  local component_ID = self:new_component_id(component)
+  local component_ID = self:new_component_id(component.type)
 
   if not self.entities_by_component[component_ID] then
     self.entities_by_component[component_ID] = {}
@@ -116,9 +116,6 @@ function Ecs:register_component(entity_id, component)
   self.entities_by_component[component_ID][entity_id] = true
 
   local componentName = utils.componentLabel(component.type, c_types)
-  if not self.components_counter[utils.componentLabel(component.type, c_types)] then
-    self.components_counter[componentName] = 0
-  end
 
   -- Definir os dados do componente vinculados a entidade
   -- local key = entity_id .. component_ID
@@ -148,27 +145,25 @@ function Ecs:register_component(entity_id, component)
   self:update_component_counter(component.type)
 end
 
-function Ecs:new_component_id(component)
-  if not self.components_keys[component.type] then
+function Ecs:new_component_id(type)
+  if not self.components_keys[type] then
     local new_id = utils.newUUID()
-    self.components_keys[component.type] = new_id
-    self.components_ids[new_id] = component.type
+    self.components_keys[type] = new_id
+    self.components_ids[new_id] = type
   end
-  local component_ID = self.components_keys[component.type]
+  local component_ID = self.components_keys[type]
   return component_ID
 end
 
-function Ecs:remove_component(entity_id, component)
+function Ecs:remove_component(entity_id, type)
   if not entity_id then return end
-
-  local key                     = self:new_component_id(component)
+  local key                     = self:new_component_id(type)
   self.entities[entity_id][key] = nil
-
   if self.entities_by_component[key] then
     self.entities_by_component[key][entity_id] = nil
   end
 
-  self:update_component_counter(component.type)
+  self:update_component_counter(type)
 end
 
 function Ecs:update_component_counter(c_type)
@@ -179,7 +174,7 @@ function Ecs:update_component_counter(c_type)
     self.components_counter[name] = 0
   end
 
-  if self.components_counter[name] > 0 then
+  if self.entities_by_component[id] then
     self.components_counter[name] = utils.getSizeOfSet(self.entities_by_component[id])
   end
 
@@ -197,10 +192,12 @@ function Ecs:update_system_watchs_status(id)
     if sys then
       for _, c_type in ipairs(sys.watch) do
         local name = utils.componentLabel(c_type, c_types)
-        print(utils.inspect(self.components_counter))
-        -- if self.components_counter[name] > 0 then
-        -- active = true
-        -- end
+        if self.components_counter[name] and self.components_counter[name] > 0 then
+          active = true
+          self.systems_status[sys.id] = true
+        else
+          self.systems_status[sys.id] = nil
+        end
       end
     end
 
@@ -307,9 +304,8 @@ function Ecs:update(dt, pass)
   end
 
   -- Sistemas que sempre executam quando existe componente para ele
-
   for key, _ in pairs(self.systems_status) do
-    print("Rodando sistema sem evento", key)
+    self.systems[key]:process(self, self.delta_time)
   end
 end
 
@@ -425,6 +421,23 @@ function Ecs:count_sys_runners()
     if v.running then counter = counter + 1 end
   end
   return counter
+end
+
+function Ecs:getEntityInfo(id)
+  local entity = self.entities[id]
+
+  local components = {}
+
+  for k, _ in pairs(entity) do
+    local c_type = self.components_ids[k]
+    table.insert(components, utils.componentLabel(c_type, c_types))
+  end
+
+  local result = {
+    componentes = components
+  }
+
+  return result
 end
 
 return Ecs

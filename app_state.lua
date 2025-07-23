@@ -30,6 +30,12 @@ local AppState    = {
       ["q"] = "game/register_component",
       ["e"] = "game/remove_component",
       ["lshift"] = "game/run",
+      ["1"] = "game/remove_component",
+      ["2"] = "game/remove_component",
+      ["3"] = "game/remove_component",
+      ["4"] = "game/remove_component",
+      ["5"] = "game/remove_component",
+      ["6"] = "game/remove_component",
     }
   },
   events_by_layer = {

@@ -4,6 +4,7 @@ local Fps       = require 'core.ui.components.fps'
 local utils     = require("core.utils")
 
 
+
 local editor_ui = UIHandler:new();
 
 editor_ui.rootElement = UIElement:new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
@@ -56,12 +57,15 @@ player_inspect.watch_resize = function(self)
 end
 
 
+local system_list = require("editor.ui.system_list")
+
 
 local fps = Fps
 fps.rect.y = 4
 fps.rect.x = 4
 editor_ui.rootElement:addChild(fps)
 editor_ui.rootElement:addChild(player_inspect)
+editor_ui.rootElement:addChild(system_list)
 
 editor_ui.rootElement.canvas = nil
 

@@ -2,7 +2,7 @@
 local _Editor = require "editor.editor"
 local _KeyboardManager = require("core.keyboard_manager")
 local _eventManager = require("core.events")
--- local utils = require("core.utils")
+local utils = require("core.utils")
 
 local AppState = require("app_state")
 
@@ -17,6 +17,7 @@ KeyboardManager = _KeyboardManager:new()
 State = AppState:new()
 
 function love.load()
+  utils.debug_position()
   KeyboardManager:registerHandler(State)
 
   GAME = tri_game:new()

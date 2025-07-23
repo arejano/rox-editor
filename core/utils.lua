@@ -89,7 +89,7 @@ function utils.debug_position()
   local w, h, target = utils.GetDisplayInfo()
   love.window.setMode(
     w,
-    h,
+    h - 50,
     { display = target, resizable = true }
   )
 end
