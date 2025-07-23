@@ -283,7 +283,7 @@ function Ecs:add_resource(type, resource)
 end
 
 function Ecs:get_resource(resource_name)
-  return self.resources[resource_name] or {}
+  return self.resources[resource_name][1] or {}
 end
 
 function Ecs:add_event(event)
@@ -329,7 +329,8 @@ function Ecs:update(dt, pass)
     self.systems[key]:process(self, self.delta_time)
   end
 
-  if utils.getSizeOfSet(self.dirty_entities) then
+
+  if utils.getSizeOfSet(self.dirty_entities) > 0 then
     self:add_event({
       type = game_events.ProcessDirtyEntities,
       data = nil,

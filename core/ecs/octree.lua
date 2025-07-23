@@ -1,6 +1,10 @@
 local utils    = require("core.utils")
 local bit      = require("bit")
 
+---@class Octree
+---@field update_dirty function
+---@field objects any
+---@field bounds any
 local Octree   = {}
 Octree.__index = Octree
 
@@ -134,11 +138,18 @@ function Octree:remove(entity)
 end
 
 -- Atualiza entidades com dirty flag
+---@param dirty_entities  SpatialEntity[]
 function Octree:update_dirty(dirty_entities)
   for _, entity in pairs(dirty_entities) do
     self:remove(entity)
     self:insert(entity)
   end
+end
+
+---@param entity SpatialEntity
+function Octree:update(entity)
+  self:remove(entity)
+  self:insert(entity)
 end
 
 -- Depuração: imprime estrutura da árvore
@@ -150,6 +161,94 @@ function Octree:print(level)
       child:print(level + 1)
     end
   end
+end
+
+-- Busca colisões com base no ID da entidade
+function Octree:get_collisions_by_id(id)
+  local target = nil
+
+  -- Função local para encontrar a entidade pelo ID
+  local function find_entity(node)
+    for _, obj in ipairs(node.objects) do
+      if obj.id == id then
+        return obj
+      end
+    end
+    if node.children then
+      for _, child in ipairs(node.children) do
+        local result = find_entity(child)
+        if result then return result end
+      end
+    end
+    return nil
+  end
+
+  target = find_entity(self)
+  if not target then return {} end
+
+  local area = {
+    x = target.position.x,
+    y = target.position.y,
+    z = target.position.z,
+    width = target.size.width,
+    height = target.size.height,
+    depth = target.size.depth
+  }
+
+  local found = self:query(area)
+  local collisions = {}
+
+  for _, obj in ipairs(found) do
+    if obj.id ~= id then
+      table.insert(collisions, obj)
+    end
+  end
+
+  return collisions
+end
+
+---@param entity SpatialEntity
+function Octree:check_next_collision(entity)
+  local target = nil
+
+  -- Função local para encontrar a entidade pelo ID
+  local function find_entity(node)
+    for _, obj in ipairs(node.objects) do
+      if obj.id == entity.id then
+        return obj
+      end
+    end
+    if node.children then
+      for _, child in ipairs(node.children) do
+        local result = find_entity(child)
+        if result then return result end
+      end
+    end
+    return nil
+  end
+
+  target = find_entity(self)
+  if not target then return {} end
+
+  local area = {
+    x = target.position.x,
+    y = target.position.y,
+    z = target.position.z,
+    width = target.size.width,
+    height = target.size.height,
+    depth = target.size.depth
+  }
+
+  local found = self:query(area)
+  local collisions = {}
+
+  for _, obj in ipairs(found) do
+    if obj.id ~= entity.id then
+      table.insert(collisions, obj)
+    end
+  end
+
+  return collisions
 end
 
 return Octree

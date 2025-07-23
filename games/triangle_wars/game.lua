@@ -1,29 +1,36 @@
-local Ecs = require("core.ecs.ecs")
-local game_state = require("core.game_state")
-local utils = require("core.utils")
-local game_events = require("games.triangle_wars.game_events")
-local c_types = require("games.triangle_wars.c_types")
+local Ecs                  = require("core.ecs.ecs")
+local game_state           = require("core.game_state")
+local utils                = require("core.utils")
+local game_events          = require("games.triangle_wars.game_events")
+local c_types              = require("games.triangle_wars.c_types")
+local Octree               = require("core.ecs.octree")
+
+local movement_system      = require("games.triangle_wars.movement_system")
+local spatial_index_system = require("games.triangle_wars.spatial_index_system")
 
 ---@class TriangleWarsGame
 ---@field ecs Ecs | nil
-local TriangleWarsGame = {
+local TriangleWarsGame     = {
   game_state = 1,
   ecs = nil,
   dt = 0,
-
 }
 
-TriangleWarsGame.__index = TriangleWarsGame
+TriangleWarsGame.__index   = TriangleWarsGame
 
 function TriangleWarsGame:new()
-  local self = {
-    ecs = Ecs:new()
-  }
+  local self = { ecs = Ecs:new() }
+  local octree = Octree.new(
+    { x = 0, y = 0, z = 0, width = 10000, height = 10000, depth = 1000 }
+  )
+
+  self.ecs:add_resource("octree", octree)
 
   self.ecs:add_system(require("games.triangle_wars.keyboard_system"))
   self.ecs:add_system(require("games.triangle_wars.render_system"))
-  self.ecs:add_system(require("games.triangle_wars.movement_system"))
-  self.ecs:add_system(require("games.triangle_wars.spatial_index_system"))
+  self.ecs:add_system(require("games.triangle_wars.entity_tracker_system"))
+  self.ecs:add_system(movement_system)
+  self.ecs:add_system(spatial_index_system)
 
   self.ecs:add_entity({
     { type = c_types.Player,       data = true },

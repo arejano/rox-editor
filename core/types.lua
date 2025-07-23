@@ -3,6 +3,21 @@ local utils = require("core.utils")
 ---@class Event
 ---@field eventType  EventType
 
+---@class Position
+---@field x number
+---@field y number
+
+---@class Size
+---@field width number
+---@field height number
+
+
+
+---@class SpatialEntity
+---@field id string
+---@field position Position
+---@field size Size
+
 
 ---@enum EventType
 local event_types = utils.make_enum({

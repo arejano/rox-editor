@@ -13,7 +13,6 @@ local keyboard_system = {
     ["s"] = { dx = 0, dy = 1 },  --Down
     ["d"] = { dx = 1, dy = 0 },  --Right
   },
-  inMovement = false,
 }
 
 function keyboard_system:start()
