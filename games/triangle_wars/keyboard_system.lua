@@ -21,64 +21,68 @@ end
 function keyboard_system:process(ecs, dt, event, pass)
   local pressed_keys = event.data
 
-  local entity = ecs:query_first(self.requires)
-  local inMovement = false
-  if entity == nil then return end
+  -- local entity = ecs:query_first(self.requires)
 
-  local velocity = { dx = 0, dy = 0 }
+  for entity in pairs(ecs:query(self.requires)) do
+    local inMovement = false
+    if entity == nil then return end
 
-  if pressed_keys == nil then
-    ecs:remove_component(entity, c_types.Running)
-    ecs:remove_component(entity, c_types.InMovement)
-    ecs:set_component(entity, c_types.Velocity, velocity)
-  else
-    for key, _ in pairs(pressed_keys) do
-      if self.key_vectors[key] then
-        velocity.dx = velocity.dx + self.key_vectors[key].dx
-        velocity.dy = velocity.dy + self.key_vectors[key].dy
-      end
-    end
+    local velocity = { dx = 0, dy = 0 }
 
-    if velocity.dx == -0 then velocity.dx = 0 end
-    if velocity.dy == -0 then velocity.dy = 0 end
-    ecs:set_component(entity, c_types.Velocity, velocity)
-
-    if pressed_keys["q"] then
-      ecs:register_component(entity, { type = c_types.InMovement, data = true })
-    end
-
-    if pressed_keys["e"] then
-    end
-
-    if pressed_keys["lshift"] then
-      ecs:register_component(entity, { type = c_types.Running, data = true })
-    else
+    if pressed_keys == nil then
       ecs:remove_component(entity, c_types.Running)
-    end
+      ecs:remove_component(entity, c_types.InMovement)
+      ecs:set_component(entity, c_types.Velocity, velocity)
+    else
+      for key, _ in pairs(pressed_keys) do
+        if self.key_vectors[key] then
+          velocity.dx = velocity.dx + self.key_vectors[key].dx
+          velocity.dy = velocity.dy + self.key_vectors[key].dy
+        end
+      end
+
+      if velocity.dx == -0 then velocity.dx = 0 end
+      if velocity.dy == -0 then velocity.dy = 0 end
+      ecs:set_component(entity, c_types.Velocity, velocity)
+
+      if pressed_keys["q"] then
+        ecs:register_component(entity, { type = c_types.InMovement, data = true })
+      end
+
+      if pressed_keys["e"] then
+      end
+
+      if pressed_keys["lshift"] then
+        ecs:register_component(entity, { type = c_types.Running, data = true })
+      else
+        ecs:remove_component(entity, c_types.Running)
+      end
 
 
-    if velocity.dx ~= 0 or velocity.dy ~= 0 then
-      inMovement = true
-    end
-    if inMovement ~= self.inMovement then
-      self.inMovement = inMovement
+      -- if velocity.dx ~= 0 or velocity.dy ~= 0 then
+      --   inMovement = true
+      -- end
+      -- if inMovement ~= self.inMovement then
+      --   self.inMovement = inMovement
+      --   print("wow")
       ecs:register_component(entity, { type = c_types.InMovement, data = true })
+      -- end
     end
-  end
 
-  EventManager:emit("player_update", {
-    moving = self.inMovement,
-    velocity = velocity,
-    -- running = running,
-    -- pressed_keys = pressed_keys,
-    -- player_components = ecs.entities,
-    qt_sistemas_ativos = ecs:count_sys_runners(),
-    -- system_ct = ecs.systems_by_component,
-    -- ent_by_ct = ecs.entities_by_component,
-    -- componentes = ecs:getActiveComponents(),
-    cp = ecs.components,
-    counters = ecs.components_counter
-  })
+    EventManager:emit("player_update", {
+      moving = self.inMovement,
+      velocity = velocity,
+      -- running = running,
+      -- pressed_keys = pressed_keys,
+      -- player_components = ecs.entities,
+      qt_sistemas_ativos = ecs:count_sys_runners(),
+      -- system_ct = ecs.systems_by_component,
+      -- ent_by_ct = ecs.entities_by_component,
+      -- componentes = ecs:getActiveComponents(),
+      cp = ecs.components,
+      counters = ecs.components_counter
+    })
+  end
 end
 
 function keyboard_system:stopMove(ecs)

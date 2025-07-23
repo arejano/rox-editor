@@ -157,8 +157,9 @@ end
 
 function Ecs:remove_component(entity_id, type)
   if not entity_id then return end
-  local key                     = self:new_component_id(type)
-  self.entities[entity_id][key] = nil
+  local key                       = self:new_component_id(type)
+  self.entities[entity_id][key]   = nil
+  self.components[entity_id][key] = nil
   if self.entities_by_component[key] then
     self.entities_by_component[key][entity_id] = nil
   end

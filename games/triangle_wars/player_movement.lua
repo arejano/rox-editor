@@ -21,7 +21,6 @@ function move_system:process(ecs, dt, event, pass)
     local transform = ecs:get_component(entity, c_types.Transform).data
     local speed = ecs:get_component(entity, c_types.Speed).data
     local running = ecs:get_component(entity, c_types.Running).data
-    print(running)
 
     local inMovement = false
 
@@ -33,6 +32,7 @@ function move_system:process(ecs, dt, event, pass)
         local norm_dy = velocity.dy / length
 
         -- Aplica movimento
+        local speed = running and speed * 5 or speed
         transform.position.x = transform.position.x + norm_dx * speed * dt
         transform.position.y = transform.position.y + norm_dy * speed * dt
 
