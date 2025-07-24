@@ -36,6 +36,10 @@ function love.update(dt)
 end
 
 function love.draw()
+  local w, h = utils.GetWindowSize()
+  love.graphics.setColor(love.math.colorFromBytes(39, 37, 36))
+  love.graphics.rectangle("fill", 0, 0, w, h)
+
   GAME:draw()
   Editor:draw()
 end

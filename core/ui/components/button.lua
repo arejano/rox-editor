@@ -7,7 +7,7 @@ Button.__index = Button
 function Button:new(rect, click)
   local button = UiElement:new(rect.x, rect.y, rect.width, rect.height);
   button.style.padding = 4
-  button.isClickable = true
+  button.clickable = true
 
   button.draw = function(self)
     local color = setColorConfig(self);

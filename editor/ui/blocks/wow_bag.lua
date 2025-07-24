@@ -2,7 +2,7 @@ local UIElement = require "core.ui.element"
 local Row = require "core.ui.components.row"
 
 local element = UIElement:new(100, 100, 500, 500)
-element.isDragable = true
+element.dragable = true
 
 element.draw = function(self)
   love.graphics.setColor(0, 0, 0, 0)

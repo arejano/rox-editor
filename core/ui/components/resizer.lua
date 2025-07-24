@@ -7,7 +7,7 @@ function Resizer:new(w, h, element)
   local resizer = UiElement:new(w - resizerSize, h - resizerSize, resizerSize, resizerSize)
 
   resizer.isResizer = true
-  resizer.isClickable = true
+  resizer.clickable = true
 
   -- Evita recriar tabela toda vez no draw
   local triangle = {

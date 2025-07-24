@@ -5,7 +5,7 @@ local utils = require "core.utils"
 local element = Window:new()
 element.rect.width = 150
 element.rect.height = 30
-element.isDragable = true
+element.dragable = true
 
 local text = UIElement:new(5, 5, 260, 20)
 text.data = { label = "FPS!!!!", update_counter = 0 }

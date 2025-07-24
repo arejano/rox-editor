@@ -3,7 +3,7 @@ local utils = require 'utils'
 
 local tool_panel = UIElement:new(0, 40, _G.main_rects['tool_panel'].width, 100)
 tool_panel.name = "tool_panel"
-tool_panel.isClickable = true
+tool_panel.clickable = true
 tool_panel.style.bg = { 221, 222, 224 }
 
 tool_panel.start = function(self)

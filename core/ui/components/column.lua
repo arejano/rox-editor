@@ -6,7 +6,7 @@ local Button = {
 
 function Button:new(x, y, w, h)
   local button = UiElement:new(x, y, w, h);
-  button.isClickable = true
+  button.clickable = true
 
   button.draw = function(self)
     local color = setColorConfig(self);

@@ -6,7 +6,7 @@ TinyButton.__index = TinyButton
 ---@param rect Rect
 function TinyButton:new(rect, click)
 	local button = UiElement:new(rect.x, rect.y, rect.width, rect.height);
-	button.isClickable = true
+	button.clickable = true
 
 	button.draw = function(self)
 		if self.texture then

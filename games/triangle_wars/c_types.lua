@@ -10,6 +10,7 @@ local c_types = utils.make_enum({
   "Moving",
   "MovingBlocked",
   "Collidable",
+  "Colliding",
   "Bullet",
   "Energy",
   "Dead",

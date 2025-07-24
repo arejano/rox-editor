@@ -54,41 +54,51 @@ end
 ---------------------------------------------------------Mouse
 ---@param mousedata  MouseClickData
 function UIHandler:handleMouseClick(mousedata)
+  print(mousedata.pressed and "--pressed" or "--released" .. "-----------------------------")
   if self.stopped then return end
 
   local focus = self.elementOnMouseFocus
+
+
 
   -- Cancel Dragging and Resize
   self:cancelDragAndResize(mousedata.release)
 
   if focus and focus.transpass then
+    print("WOW2")
     while focus.transpass do
       focus = focus.parent
     end
   end
 
   if focus.parent and mousedata.pressed then
+    print("WOW3")
     focus.parent:newFocusOrder(focus.ID)
   end
 
   -- Resizing
   if focus ~= nil and focus.resizer_target then
+    print("WOW4")
     if mousedata.pressed then
+      print("WOW5")
       self.elementOnResizing = focus:startResize()
     end
     return
   end
 
   -- Dragging
-  if focus ~= nil and focus.isDragable then
+  if focus ~= nil and focus.dragable then
+    print("WOW6")
     if mousedata.pressed then
+      print("WOW7")
       self.elementOnDragging = focus:beginDrag(mousedata.x, mousedata.y)
     end
     return
   end
 
   -- Send click to focus
-  if focus ~= nil and focus.click and focus.isClickable then
+  if focus ~= nil and focus.click and focus.clickable then
+    print("WOW8")
     focus:click(mousedata)
   end
 end
@@ -314,7 +324,7 @@ function UIHandler:cursorByState(element)
     return 'hand'
   end
 
-  if element.isClickable then
+  if element.clickable then
     return 'hand'
   else
     return nil

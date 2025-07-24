@@ -64,6 +64,15 @@ function move_system:process(ecs, dt, event, pass)
     end
 
     if movementIsValid then
+      ecs:register_component(entity, {
+        type = c_types.Colliding,
+        data = nil
+      })
+    else
+      ecs:remove_component(entity, c_types.Colliding)
+    end
+
+    if movementIsValid then
       -- Atualiza o estado de movimento se mudou
       local wasMoving = ecs:get_component(entity, c_types.Moving)
       if inMovement and not wasMoving then

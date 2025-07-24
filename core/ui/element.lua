@@ -22,8 +22,8 @@ local utils = require "core.utils"
 ---@field minHeight number
 ---@field maxWidth number
 ---@field maxHeight number
----@field isClickable boolean
----@field isDragable boolean
+---@field clickable boolean
+---@field dragable boolean
 ---@field dragging boolean
 ---@field dragOffsetX number
 ---@field dragOffsetY number
@@ -60,8 +60,8 @@ local UIElement = {
   resizing = false,
   hasMouseFocus = false,
   isMouseOver = false,
-  isClickable = false,
-  isDragable = false,
+  clickable = false,
+  dragable = false,
   lastMouseState = false,
   resizeMode = "right",
   minWidth = 50,

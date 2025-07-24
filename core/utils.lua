@@ -92,6 +92,7 @@ function utils.debug_position()
     h - 50,
     { display = target, resizable = true }
   )
+  love.window.maximize()
 end
 
 function utils.isInvalidResize(w, h, minWidth, minHeight)

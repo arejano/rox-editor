@@ -1,25 +1,26 @@
-local UIElement        = require "core.ui.element"
-local utils            = require("core.utils")
+local UIElement          = require "core.ui.element"
+local Window             = require("core.ui.components.window")
+local utils              = require("core.utils")
 
-local system_list      = UIElement:new(0, 0, 300, 700)
-system_list.isDragable = true
+local system_list        = Window:new()
 
-EventManager:watch("systems_update", system_list)
+local player_data        = UIElement:new(8, 8,100,100)
+player_data.draw         = function(self)
+  local x, y = self.rect.x, self.rect.y
+  local w, h = self.rect.width, self.rect.height
+  local rx, ry = 0, 0 -- borda arredondada
 
-system_list.draw = function(self)
-  love.graphics.setColor(0.5, 0.5, 0.5, 0.5)
-  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height, 12)
+  love.graphics.setColor(love.math.colorFromBytes(1, 1, 1))
+  love.graphics.rectangle("fill", 0, 0, w - 4, h - 4, rx, ry)
 end
 
-system_list.watch_resize = function(self)
-end
-
-system_list.start = function(self)
-end
-
-system_list.consumeEvent = function(self, event)
-  print(utils.inspect(event))
+player_data.consumeEvent = function(self, event)
+  for k, v in pairs(event) do
+    self.data[k] = v
+  end
   self:markDirty()
 end
+
+EventManager:watch("player_update", system_list)
 
 return system_list

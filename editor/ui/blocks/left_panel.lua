@@ -13,7 +13,7 @@ function LeftPanel:new()
   local panel = UiElement:new(0, 0, base_panel_width, h)
   panel.name = "LeftPanel"
   panel.resizable = true
-  panel.isDragable = true
+  panel.dragable = true
   panel.resizeMode = "left";
 
   panel.draw = function(obj)

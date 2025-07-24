@@ -26,7 +26,7 @@ local data = {
   player_data = {}
 }
 player_inspect:bindData(data)
-player_inspect.isDragable = true
+player_inspect.dragable = true
 player_inspect.draw = function(self)
   love.graphics.setColor(love.math.colorFromBytes(0, 92, 75))
   love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
@@ -35,12 +35,12 @@ player_inspect.draw = function(self)
   love.graphics.print(utils.inspect(self.data), 20, 20)
 end
 
-player_inspect.consumeEvent = function(self, event)
-  for k, v in pairs(event) do
-    self.data[k] = v
-  end
-  self:markDirty()
-end
+-- player_inspect.consumeEvent = function(self, event)
+--   for k, v in pairs(event) do
+--     self.data[k] = v
+--   end
+--   self:markDirty()
+-- end
 
 player_inspect.start = function(self)
   local new_x = self.parent.rect.width - self.rect.width
@@ -48,7 +48,7 @@ player_inspect.start = function(self)
   self.rect.height = self.parent.rect.height
 end
 
-EventManager:watch("player_update", player_inspect)
+-- EventManager:watch("player_update", player_inspect)
 
 player_inspect.watch_resize = function(self)
   self.rect.height = self.parent.rect.height
@@ -60,11 +60,12 @@ end
 local system_list = require("editor.ui.system_list")
 
 
-local fps = Fps
-fps.rect.y = 4
-fps.rect.x = 4
-editor_ui.rootElement:addChild(fps)
+-- local fps = Fps
+-- fps.rect.y = 4
+-- fps.rect.x = 4
+-- editor_ui.rootElement:addChild(fps)
 editor_ui.rootElement:addChild(player_inspect)
+
 editor_ui.rootElement:addChild(system_list)
 
 editor_ui.rootElement.canvas = nil
