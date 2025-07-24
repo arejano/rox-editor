@@ -63,32 +63,22 @@ function keyboard_system:process(ecs, dt, event, pass)
       ecs:register_component(entity, { type = c_types.Moving, data = true })
     end
 
-    -- EventManager:emit("player_update", {
-    --   -- moving = self.inMovement,
-    --   -- velocity = velocity,
-    --   -- running = running,
-    --   -- pressed_keys = pressed_keys,
-    --   -- player_components = ecs.entities,
-    --   -- qt_sistemas_ativos = ecs:count_sys_runners(),
-    --   -- system_ct = ecs.systems_by_component,
-    --   ent_by_ct = ecs.entities_by_component,
-    --   -- componentes = ecs:getActiveComponents(),
-    --   -- cp = ecs.components,
-    --   -- counters = ecs.components_counter,
-    --   entities = ecs.entities,
-    --   dirtys = ecs.dirty_entities,
-    -- })
+    EventManager:emit("player_update", {
+      -- moving = self.inMovement,
+      -- velocity = velocity,
+      -- running = running,
+      -- pressed_keys = pressed_keys,
+      -- player_components = ecs.entities,
+      -- qt_sistemas_ativos = ecs:count_sys_runners(),
+      -- system_ct = ecs.systems_by_component,
+      -- ent_by_ct = ecs.entities_by_component,
+      -- componentes = ecs:getActiveComponents(),
+      cp = ecs.components,
+      -- counters = ecs.components_counter,
+      -- entities = ecs.entities,
+      -- dirtys = ecs.dirty_entities,
+    })
   end
-end
-
-function keyboard_system:stopMove(ecs)
-  local entity = ecs:query_first(self.requires)
-  if entity == nil then return end
-
-  local velocity = { dx = 0, dy = 0 }
-  ecs:set_component(entity, c_types.Velocity, velocity)
-  EventManager:emit("player_update", { velocity = velocity, running = false })
-  -- EventManager:emit("systems_update", { data = ecs:getActiveComponents})
 end
 
 return keyboard_system

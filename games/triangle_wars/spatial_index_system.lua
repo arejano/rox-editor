@@ -32,9 +32,7 @@ function spatial_index_system:process(ecs, dt, event, pass)
     ecs.dirty_entities[key] = nil
   end
 
-  EventManager:emit("player_update", {
-    oct = self.octree.objects,
-  })
+  -- EventManager:emit("player_update", { oct = self.octree.objects, })
 end
 
 return spatial_index_system

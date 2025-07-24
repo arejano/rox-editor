@@ -55,6 +55,7 @@ end
 ---@param mousedata  MouseClickData
 function UIHandler:handleMouseClick(mousedata)
   print(mousedata.pressed and "--pressed" or "--released" .. "-----------------------------")
+
   if self.stopped then return end
 
   local focus = self.elementOnMouseFocus
@@ -87,7 +88,7 @@ function UIHandler:handleMouseClick(mousedata)
   end
 
   -- Dragging
-  if focus ~= nil and focus.dragable then
+  if focus ~= nil and focus.dragable and not focus.minimized then
     print("WOW6")
     if mousedata.pressed then
       print("WOW7")

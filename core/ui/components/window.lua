@@ -4,11 +4,15 @@ local UIElement = require "core.ui.element"
 -- local Row = require "editor.ui.components.row"
 -- local Text = require "editor.ui.components.text"
 
-local Window = {}
+local Window = {
+  container_focus = nil
+}
 Window.__index = Window
 
 function Window:new(x)
   local element = UIElement:new(10, 10, 300, 600)
+  element.minHeight = 600
+  element.minWidth = 300
   element.dragable = true
 
   local data = {
@@ -24,13 +28,25 @@ function Window:new(x)
   local enroll_button = UIElement:new(8, 8, 16, 16)
   enroll_button.clickable = true
 
+  enroll_button.draw = function(self)
+    local w, h = self.rect.width, self.rect.height
+    local rx, ry = 0, 0
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", 0, 0, w, h, rx, ry)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", 0, 0, w, h, rx, ry)
+    love.graphics.print("E", 4, 0)
+  end
+
   enroll_button.click = function(self, event)
     print("enroll_click")
     if not event.pressed then return end
     if self.parent.data.state.enrolled then
       self.parent.data.state.enrolled = false
+      self.parent.container_focus.visible = true
     else
       self.parent.data.state.enrolled = true
+      self.parent.container_focus.visible = false
     end
 
     self.parent.rect.height = self.parent.data.state.enrolled and 36 or 600
@@ -48,24 +64,65 @@ function Window:new(x)
   minimize_button.start = function(self)
     self.rect.x = self.parent.rect.width - self.rect.width - 12 - 16 - 16 - 16
   end
-  minimize_button.click = function(self)
-    self.parent.data.state.minimized = true
-    self.parent.data.state.maximized = false
-    self.parent.data.state.enrolled = false
-    self.parent:markDirty()
+
+  minimize_button.watch_resize = function(self)
+    self.rect.x = self.parent.rect.width - self.rect.width - 12 - 16 - 16 - 16
+  end
+
+  minimize_button.draw = function(self)
+    local w, h = self.rect.width, self.rect.height
+    local rx, ry = 0, 0
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", 0, 0, w, h, rx, ry)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", 0, 0, w, h, rx, ry)
+    love.graphics.print("M", 3, 0)
+  end
+  minimize_button.click = function(self, event)
+    if not event.pressed then return end
+
+    if not event.pressed then return end
+    if self.parent.data.state.enrolled then
+      self.parent.data.state.enrolled = false
+      self.parent.container_focus:toggleVisibility(true)
+    else
+      self.parent.data.state.enrolled = true
+      self.parent.container_focus:toggleVisibility(false)
+    end
+
+    self.parent.rect.height = self.parent.data.state.enrolled and 36 or 600
+
+    self:toggleMinimized(self.parent)
   end
   element:addChild(minimize_button)
 
 
   local maximize_button = UIElement:new(8, 8, 16, 16)
   maximize_button.clickable = true
+
+  maximize_button.draw = function(self)
+    local w, h = self.rect.width, self.rect.height
+    local rx, ry = 0, 0
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", 0, 0, w, h, rx, ry)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", 0, 0, w, h, rx, ry)
+    love.graphics.print("M", 3, 0)
+  end
   maximize_button.start = function(self)
     self.rect.x = self.parent.rect.width - self.rect.width - 12 - 16 - 8
   end
-  maximize_button.click = function(self)
+  maximize_button.watch_resize = function(self)
+    self.rect.x = self.parent.rect.width - self.rect.width - 12 - 16 - 8
+  end
+  maximize_button.click = function(self, mousedata)
+    if not mousedata.pressed then return end
+
     self.parent.data.state.minimized = false
     self.parent.data.state.maximized = true
     self.parent.data.state.enrolled = false
+
+    self:toggleMaximizeWindowSize(self.parent)
     self.parent:markDirty()
   end
   element:addChild(maximize_button)
@@ -73,6 +130,15 @@ function Window:new(x)
 
   local close_button = UIElement:new(8, 8, 16, 16)
   close_button.clickable = true
+  close_button.draw = function(self)
+    local w, h = self.rect.width, self.rect.height
+    local rx, ry = 0, 0
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", 0, 0, w, h, rx, ry)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", 0, 0, w, h, rx, ry)
+    love.graphics.print("C", 4, 0)
+  end
   close_button.click = function(self)
     self.parent.data.state.minimized = false
     self.parent.data.state.maximized = false
@@ -80,6 +146,9 @@ function Window:new(x)
     self.parent:markDirty()
   end
   close_button.start = function(self)
+    self.rect.x = self.parent.rect.width - self.rect.width - 12
+  end
+  close_button.watch_resize = function(self)
     self.rect.x = self.parent.rect.width - self.rect.width - 12
   end
 
@@ -110,9 +179,15 @@ function Window:new(x)
 
   local container = UIElement:new(8, 32, 50, 50)
   container.start = function(self)
-    self.rect.width = self.parent.rect.width - 18
+    self.rect.width = self.parent.rect.width - 20
     self.rect.height = self.parent.rect.height - 40
   end
+
+  container.watch_resize = function(self)
+    self.rect.width = self.parent.rect.width - 20
+    self.rect.height = self.parent.rect.height - 40
+  end
+  element.container_focus = container
 
   element:addChild(container)
 

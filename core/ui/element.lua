@@ -44,7 +44,13 @@ local utils = require "core.utils"
 ---@field target_fps number
 ---@field timeSinceLastDraw number
 ---@field noPropagate boolean
+---@field maximized boolean
+---@field minimized boolean
+---@field last_float_position Rect
 local UIElement = {
+  last_float_position = { x = 0, y = 0, width = 0, height = 0 },
+  maximized = false,
+  minimized = false,
   noPropagate = false,
   target_fps = 60,
   ID = "",
@@ -56,6 +62,7 @@ local UIElement = {
     border_dragging = { 191, 32, 50 },
     font_size       = 12,
   },
+  last_size = {},
   resizable = false,
   resizing = false,
   hasMouseFocus = false,
@@ -435,6 +442,12 @@ function UIElement:resize(w, h)
   self:propagateResize()
 end
 
+function UIElement:setMinimalSize()
+  self.rect.width = self.minWidth
+  self.rect.height = self.minHeight
+  self:propagateResize()
+end
+
 function UIElement:propagateResize()
   for _, child in ipairs(self.childs) do
     if child.watch_resize then
@@ -562,6 +575,68 @@ end
 
 function UIElement:consumeEvent(event)
   print("UIElement:consumeEvent" .. utils.inspect(event))
+end
+
+function UIElement:toggleMaximizeWindowSize(target)
+  local self = target or self
+  local ww, wh = utils.GetWindowSize()
+  if self.maximized then
+    self.maximized = false
+    self:dragTo(100, 100)
+    self:setMinimalSize()
+
+    self:restoreLastFloatPosition()
+  else
+    self.maximized = true
+    self:savePosition()
+    self:dragTo(0, 0)
+    self:resize(ww, wh)
+  end
+end
+
+function UIElement:restoreLastFloatPosition()
+  self.rect.x = self.last_float_position.x
+  self.rect.y = self.last_float_position.y
+  self:resize(self.last_float_position.width, self.last_float_position.height)
+  -- self:propagateResize()
+end
+
+function UIElement:savePosition()
+  local rect = {
+    x = self.rect.x,
+    y = self.rect.y,
+    width = self.rect.width,
+    height = self.rect.height,
+  }
+  self.last_float_position = rect
+end
+
+function UIElement:toggleMinimized(target)
+  local self = target or self
+  local ww, wh = utils.GetWindowSize()
+  print(ww, wh)
+  if not self.minimized then
+    print(1)
+    -- Minimizar
+    self:savePosition()
+    self.minimized = true
+    self.rect.x = 10
+    self.rect.y = wh - 42
+    self:resize(100, 36)
+  else
+    print(1)
+    -- Restaurar
+    self.minimized = false
+    self:restoreLastFloatPosition()
+  end
+  self:markDirty()
+end
+
+function UIElement:toggleVisibility(v)
+  self.invisible = v
+  for _, c in ipairs(self.childs) do
+    c:toggleVisibility(v)
+  end
 end
 
 return UIElement

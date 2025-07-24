@@ -48,7 +48,6 @@ player_inspect.start = function(self)
   self.rect.height = self.parent.rect.height
 end
 
--- EventManager:watch("player_update", player_inspect)
 
 player_inspect.watch_resize = function(self)
   self.rect.height = self.parent.rect.height
@@ -58,13 +57,33 @@ end
 
 
 local system_list = require("editor.ui.system_list")
+local player_info = UIElement:new(2, 2, 10, 10)
+
+player_info.draw = function(self)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.print(utils.inspect(self.data), 2, 2)
+end
+local data = {
+}
+player_info:bindData(data)
+
+player_info.consumeEvent = function(self, event)
+  print("consumindo")
+  for k, v in pairs(event) do
+    self.data[k] = v
+  end
+  self:markDirty()
+end
+
+-- system_list.container_focus:addChild(player_info)
+
 
 
 -- local fps = Fps
 -- fps.rect.y = 4
 -- fps.rect.x = 4
 -- editor_ui.rootElement:addChild(fps)
-editor_ui.rootElement:addChild(player_inspect)
+-- editor_ui.rootElement:addChild(player_inspect)
 
 editor_ui.rootElement:addChild(system_list)
 
