@@ -21,6 +21,7 @@ end
 
 
 local player_inspect = UIElement:new(0, 0, 500, editor_ui.rootElement.rect.height)
+player_inspect.name = "PlayerInspect"
 local data = {
   counter = 0,
   player_data = {}
@@ -57,33 +58,7 @@ end
 
 
 local system_list = require("editor.ui.system_list")
-local player_info = UIElement:new(2, 2, 10, 10)
-
-player_info.draw = function(self)
-  love.graphics.setColor(1, 1, 1)
-  love.graphics.print(utils.inspect(self.data), 2, 2)
-end
-local data = {
-}
-player_info:bindData(data)
-
-player_info.consumeEvent = function(self, event)
-  print("consumindo")
-  for k, v in pairs(event) do
-    self.data[k] = v
-  end
-  self:markDirty()
-end
-
--- system_list.container_focus:addChild(player_info)
-
-
-
--- local fps = Fps
--- fps.rect.y = 4
--- fps.rect.x = 4
--- editor_ui.rootElement:addChild(fps)
--- editor_ui.rootElement:addChild(player_inspect)
+system_list.name = "SystemList"
 
 editor_ui.rootElement:addChild(system_list)
 

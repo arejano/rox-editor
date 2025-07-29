@@ -1,53 +1,9 @@
 local utils = require "core.utils"
 
 ---@class UIElement
----@field ID string
----@field childs UIElement[]
----@field markDirty function
----@field startResize function
----@field endResize function
----@field onMouseLeave function
----@field handleEvent function
----@field onDragEnd function
----@field consumeEvent function
----@field parent UIElement | nil
----@field canvas any
----@field rect Rect
----@field dirty boolean
----@field resizeMode string
----@field name string
----@field resizable boolean
----@field draw function
----@field minWidth number
----@field minHeight number
----@field maxWidth number
----@field maxHeight number
----@field clickable boolean
----@field dragable boolean
----@field dragging boolean
----@field dragOffsetX number
----@field dragOffsetY number
----@field resizing boolean
----@field style ElementStyle
----@field debugging ElementStyle
----@field debug_rect Rect
----@field drag_taget UIElement
----@field isResizer boolean
----@field resizer_target UIElement
----@field transpass boolean
----@field hasMouseFocus boolean
----@field isMouseOver boolean
----@field target UIElement | nil
----@field texture any
----@field index number
----@field render_order []string
----@field target_fps number
----@field timeSinceLastDraw number
----@field noPropagate boolean
----@field maximized boolean
----@field minimized boolean
----@field last_float_position Rect
 local UIElement = {
+  absolutePosition = { x = 0, y = 0 },
+  lastRenderTime = 0,
   last_float_position = { x = 0, y = 0, width = 0, height = 0 },
   maximized = false,
   minimized = false,
@@ -80,12 +36,7 @@ local UIElement = {
   childs_render = {},
   rect = { x = 0, y = 0, width = 100, height = 100 }, -- Retângulo de posicionamento
   visible = true,
-  dirtyFlags = {
-    layout = true,
-    content = true,
-    full = true,
-  },
-  dirty = true,
+  dirty = false,
   parent = nil,
   timeSinceLastRender = 0,
   alpha = 1,
@@ -103,10 +54,10 @@ UIElement.__index = UIElement
 function UIElement:new(x, y, width, height)
   local self = setmetatable({}, UIElement)
   self.ID = utils.newUUID()
-  self.rect = { x = x or 0, y = y or 0, width = width or 100, height = height or 100 }
-  self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
+  self.rect = { x = x or 10, y = y or 10, width = width or 100, height = height or 100 }
+  -- self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
   self.childs = {}
-  self.dirty = true
+  -- self.dirty = true
 
   self.style = utils.deepCopy(UIElement.style)
 
@@ -114,6 +65,9 @@ function UIElement:new(x, y, width, height)
 end
 
 function UIElement:start()
+  local x, y = self:getAbsolutePosition();
+  self.absolutePosition.x = x
+  self.absolutePosition.y = y
 end
 
 -- Método para obter posição absoluta (considerando hierarquia)
@@ -122,6 +76,7 @@ function UIElement:getAbsolutePosition()
     return self.rect.x, self.rect.y
   end
   local parentX, parentY = self.parent:getAbsolutePosition()
+  -- local parentX, parentY = self.parent.absolutePosition.x, self.parent.absolutePosition.y
   return parentX + self.rect.x, parentY + self.rect.y
 end
 
@@ -140,6 +95,9 @@ function UIElement:markDirty()
 end
 
 -- Método base para draw (deve ser sobrescrito pelas classes filhas)
+function UIElement:_draw()
+end
+
 function UIElement:draw()
   if self.texture then
     self:drawTexture()
@@ -154,23 +112,10 @@ function UIElement:drawTexture()
   love.graphics.draw(self.texture, 0, 0, 0, 1, 1, 0, 0)
 end
 
--- Método para atualização (lógica)
--- DT
 ---@param _ number
 function UIElement:update(_)
-  -- self.timeSinceLastRender = self.timeSinceLastRender + dt
-  -- for _, child in ipairs(self.childs) do
-  --   child:update(dt)
-  -- end
 end
 
--- function UIElement:addChilds(...)
---   for i, v in ipairs(...) do
---     self:addChild(v)
---   end
--- end
-
--- Adiciona um child a este elemento
 function UIElement:addChild(child)
   table.insert(self.childs, child)
   child.parent = self
@@ -205,74 +150,22 @@ function UIElement:removeChild(child)
   return false
 end
 
-function UIElement:render_clip()
-  if not self.visible or self.alpha <= 0 then return end
-
-  -- Recria o canvas se necessário
-  if not self.canvas or
-      self.canvas:getWidth() ~= self.rect.width or
-      self.canvas:getHeight() ~= self.rect.height then
-    if self.canvas then self.canvas:release() end
-    self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
-    self.dirty = true
-  end
-
-  -- 1. Renderiza no canvas se dirty
-  if self.dirty then
-    self:startCanvas()
-    local r, g, b, a = love.graphics.getColor()
-    love.graphics.setColor(1, 1, 1, self.alpha)
-    self:draw()
-    self:debug_box()
-    love.graphics.setColor(r, g, b, a)
-    love.graphics.setCanvas()
-    self.dirty = false
-  end
-
-  -- 2. Desenha o canvas na tela
-  local absX, absY = self:getAbsolutePosition()
-  love.graphics.setColor(1, 1, 1, self.alpha)
-  love.graphics.draw(self.canvas, absX, absY)
-  love.graphics.setColor(1, 1, 1, 1)
-
-  -- 3. Ativa scissor para limitar a renderização dos filhos
-  love.graphics.setScissor(absX, absY, self.rect.width, self.rect.height)
-
-  -- 4. Renderiza filhos (respeitando o scissor)
-  for _, child in ipairs(self.childs) do
-    if not self.to_front or child.ID ~= self.to_front.ID then
-      child:render()
-    end
-  end
-
-  -- 5. Renderiza o filho em destaque no topo, se houver
-  if self.to_front then
-    self.to_front:render()
-  end
-
-  -- 6. Desativa scissor após os filhos
-  love.graphics.setScissor()
+function UIElement:isTimeToRender()
+  -- local now = love.timer.getTime()
+  -- if now - self.lastRenderTime < (1 / self.target_fps) then
+  --   return -- Não renderiza se ainda não atingiu o intervalo
+  -- end
+  -- self.lastRenderTime = now
+  return true
 end
 
 function UIElement:render()
   if not self.visible or self.alpha <= 0 then return end
 
-  local now = love.timer.getTime()
-  local fps = self.target_fps or 60
-  local interval = 1 / fps
-
-  if not self.canvas or
-      self.canvas:getWidth() ~= math.floor(self.rect.width) or
-      self.canvas:getHeight() ~= math.floor(self.rect.height) then
-    if self.canvas then self.canvas:release() end
-
-    self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
-    self.dirty = true
-  end
+  if not self:isTimeToRender() then return end
 
   -- 1. Renderiza no canvas se dirty
   if self.dirty then
-    -- print("UIElement:render: " .. self.name .. " Childs_Size: " .. #self.childs)
     self:startCanvas()
 
     -- Aplica o alpha global do elemento
@@ -287,10 +180,14 @@ function UIElement:render()
   end
 
   -- 2. Desenha o canvas na tela
+
+  -- local x, y = self:getAbsolutePosition()
+
   local x, y = self:getAbsolutePosition()
-  love.graphics.setColor(1, 1, 1, self.alpha) -- Aplica alpha novamente
+  print("Debug2: " .. self.name)
+  -- love.graphics.setColor(1, 1, 1, self.alpha) -- Aplica alpha novamente
   love.graphics.draw(self.canvas, x, y)
-  love.graphics.setColor(1, 1, 1, 1)          -- Reseta para branco sólido
+  -- love.graphics.setColor(1, 1, 1, 1)          -- Reseta para branco sólido
 
   -- 3. Renderiza filhos
   for _, id in ipairs(self.render_order) do
@@ -308,10 +205,18 @@ function UIElement:setCanvas(w, h)
 end
 
 function UIElement:startCanvas()
-  if self.canvas == nil then
+  if not self.canvas or
+      self.canvas:getWidth() ~= math.floor(self.rect.width) or
+      self.canvas:getHeight() ~= math.floor(self.rect.height)
+  then
+    print("Startando um novo canvas")
+    if self.canvas then
+      self.canvas:release()
+    end
+
     self.canvas = love.graphics.newCanvas(self.rect.width, self.rect.height)
-    -- Configura o canvas para limpar completamente
     self.canvas:setFilter('nearest', 'nearest')
+    self.dirty = true
   end
 
   love.graphics.setLineWidth(1)
@@ -339,7 +244,6 @@ function UIElement:updateRect(rect)
 
   self.rect = rect
   self.dirty = true
-  self.dirtyFlags.full = true
 
   -- TODO: Isso precisa ser reavalido
   -- Marca os pais como dirty para garantir que a hierarquia seja atualizada
@@ -385,6 +289,7 @@ function UIElement:dragTo(mx, my)
   if self.dragOffsetX and self.dragOffsetY and self.parent then
     -- Posição absoluta do pai
     local pAbsX, pAbsY = self.parent:getAbsolutePosition()
+    print("Debug3")
 
     -- Offset do mouse relativo ao pai
     local localX = mx - pAbsX - self.dragOffsetX
@@ -401,6 +306,7 @@ function UIElement:beginDrag(mouseX, mouseY)
   local target = self.drag_taget and self.drag_taget or self
 
   local ax, ay = target:getAbsolutePosition()
+  print("Debug4")
   target.dragOffsetX = mouseX - ax
   target.dragOffsetY = mouseY - ay
   target.dragging = true
@@ -416,6 +322,7 @@ end
 
 function UIElement:isMouseInsideInnerBounds(mx, my)
   local ax, ay = self:getAbsolutePosition()
+  print("Debug5")
   local x1 = ax + 5
   local y1 = ay + 5
   local x2 = ax + self.rect.width - 5
@@ -524,6 +431,7 @@ end
 
 function UIElement:clampToParent(x, y)
   local px, py = self.parent:getAbsolutePosition()
+  print("Debug6")
   local pw, ph = self.parent.rect.width, self.parent.rect.height
 
   local newX = math.max(0, math.min(x, pw - self.rect.width))
@@ -578,6 +486,7 @@ function UIElement:consumeEvent(event)
 end
 
 function UIElement:toggleMaximizeWindowSize(target)
+  ---@type UIElement
   local self = target or self
   local ww, wh = utils.GetWindowSize()
   if self.maximized then
@@ -585,20 +494,13 @@ function UIElement:toggleMaximizeWindowSize(target)
     self:dragTo(100, 100)
     self:setMinimalSize()
 
-    self:restoreLastFloatPosition()
+    self:restoreLastPosition()
   else
     self.maximized = true
     self:savePosition()
     self:dragTo(0, 0)
     self:resize(ww, wh)
   end
-end
-
-function UIElement:restoreLastFloatPosition()
-  self.rect.x = self.last_float_position.x
-  self.rect.y = self.last_float_position.y
-  self:resize(self.last_float_position.width, self.last_float_position.height)
-  -- self:propagateResize()
 end
 
 function UIElement:savePosition()
@@ -609,6 +511,12 @@ function UIElement:savePosition()
     height = self.rect.height,
   }
   self.last_float_position = rect
+end
+
+function UIElement:restoreLastPosition()
+  self.rect.x = self.last_float_position.x
+  self.rect.y = self.last_float_position.y
+  self:resize(self.last_float_position.width, self.last_float_position.height)
 end
 
 function UIElement:toggleMinimized(target)
@@ -622,12 +530,12 @@ function UIElement:toggleMinimized(target)
     self.minimized = true
     self.rect.x = 10
     self.rect.y = wh - 42
-    self:resize(100, 36)
+    self:resize(100, 100)
   else
     print(1)
     -- Restaurar
     self.minimized = false
-    self:restoreLastFloatPosition()
+    -- self:restoreLastFloatPosition()
   end
   self:markDirty()
 end

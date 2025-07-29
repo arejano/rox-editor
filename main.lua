@@ -1,74 +1,74 @@
--- local WindowManager = require "window_manager"
-local _Editor = require "editor.editor"
-local _KeyboardManager = require("core.keyboard_manager")
-local _eventManager = require("core.events")
+local UIElement = require("core.ui.element")
 local utils = require("core.utils")
 
-local AppState = require("app_state")
-
-local tri_game = require("games.triangle_wars.game")
-
--- Sempre primeiro os eventos
-EventManager = _eventManager:new()
-
----@type Editor
-Editor = _Editor:new()
-KeyboardManager = _KeyboardManager:new()
-State = AppState:new()
+UI = require("ui_test")
 
 function love.load()
+  love.profiler = require("libs.profile.profile")
+  love.profiler.start()
+
+
   utils.debug_position()
-  KeyboardManager:registerHandler(State)
-
-  GAME = tri_game:new()
-  State.Game = GAME
-  State.Editor = Editor
-  State.handler_focus = Editor
 end
 
----@param focus boolean
-function love.focus(focus)
-  print(focus)
-end
-
+love.frame = 0
 function love.update(dt)
-  GAME:update(dt)
+  love.frame = love.frame + 1
+  if love.frame % 60 == 0 then
+    love.report = love.profiler.report(150)
+    love.profiler.reset()
+  end
 end
 
 function love.draw()
-  local w, h = utils.GetWindowSize()
-  love.graphics.setColor(love.math.colorFromBytes(39, 37, 36))
-  love.graphics.rectangle("fill", 0, 0, w, h)
-
-  GAME:draw()
-  Editor:draw()
+  love.graphics.print("WoW")
+  UI:render()
+  love.graphics.print(love.report or "Please wait...")
 end
 
 function love.keypressed(key)
-  KeyboardManager:process(key, true)
+  -- KeyboardManager:process(key, true)
 end
 
 function love.keyreleased(key)
-  KeyboardManager:process(key, false)
+  -- KeyboardManager:process(key, false)
 end
 
 -- Mouse
 function love.mousepressed(x, y, button, istouch, presses)
-  Editor:mousePressed(x, y, button, istouch, presses)
+  local mouseData = {
+    x = x,
+    y = y,
+    button = button,
+    istouch = istouch,
+    presses = presses,
+    pressed = true,
+    release = false
+  }
+  UI:handleMouseClick(mouseData)
 end
 
 function love.mousereleased(x, y, button, istouch, presses)
-  Editor:mouseReleased(x, y, button, istouch, presses)
+  local mouseData = {
+    x = x,
+    y = y,
+    button = button,
+    istouch = istouch,
+    presses = presses,
+    pressed = false,
+    release = true
+  }
+  UI:handleMouseClick(mouseData)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
   local mouseData = { x = x, y = y, dx = dx, dy = dy, istouch = istouch }
-  Editor:mouseMoved(mouseData)
+  UI:mouseMoved(mouseData)
 end
 
 ---@param focus boolean
 function love.mousefocus(focus)
-  Editor:mouseFocus(focus)
+  -- Editor:mouseFocus(focus)
 end
 
 function love.wheelmoved(x, y)
@@ -76,5 +76,5 @@ function love.wheelmoved(x, y)
 end
 
 function love.resize(w, h)
-  Editor:resize(w, h);
+  UI:resize(w, h);
 end

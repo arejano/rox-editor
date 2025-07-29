@@ -230,15 +230,6 @@ function UIHandler:render()
   if self.stopped then return end
 
   self.rootElement:render()
-  self:inspect()
-end
-
-function UIHandler:inspect()
-  -- local root_childs = self.rootElement:getChildIds()
-
-  -- for i, id in ipairs(root_childs) do
-  --   love.graphics.print(id, 10, 20 * i)
-  -- end
 end
 
 -- Remove um elemento da raiz

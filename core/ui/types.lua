@@ -4,8 +4,6 @@
 --- @field width number
 --- @field height number
 
-
-
 ---@class ElementStyle
 ---@field padding number
 ---@field bg {}number
@@ -14,3 +12,55 @@
 ---@field border_dragging {}number
 ---@field font_size number
 ---@field font any
+
+
+---@class UIElement
+---@field ID string
+---@field childs UIElement[]
+---@field markDirty function
+---@field resize function
+---@field startResize function
+---@field endResize function
+---@field onMouseLeave function
+---@field handleEvent function
+---@field onDragEnd function
+---@field consumeEvent function
+---@field parent UIElement | nil
+---@field canvas any
+---@field rect Rect
+---@field dirty boolean
+---@field resizeMode string
+---@field name string
+---@field resizable boolean
+---@field draw function
+---@field minWidth number
+---@field minHeight number
+---@field maxWidth number
+---@field maxHeight number
+---@field clickable boolean
+---@field dragable boolean
+---@field dragging boolean
+---@field dragOffsetX number
+---@field dragOffsetY number
+---@field resizing boolean
+---@field style ElementStyle
+---@field debugging ElementStyle
+---@field debug_rect Rect
+---@field drag_taget UIElement
+---@field isResizer boolean
+---@field resizer_target UIElement
+---@field transpass boolean
+---@field hasMouseFocus boolean
+---@field isMouseOver boolean
+---@field target UIElement | nil
+---@field texture any
+---@field index number
+---@field render_order string[]
+---@field target_fps number
+---@field timeSinceLastDraw number
+---@field noPropagate boolean
+---@field maximized boolean
+---@field minimized boolean
+---@field last_float_position Rect
+---@field lastRenderTime number
+---@field absolutePosition Position
