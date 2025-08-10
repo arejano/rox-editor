@@ -35,12 +35,12 @@ player_data.consumeEvent = function(self, event)
   for k, v in pairs(event) do
     self.data[k] = v
   end
-  self:markDirty()
+  self:mark_dirty()
 end
 
 
 EventManager:watch("player_update", player_data)
 
-system_list:addChild(player_data)
+system_list:add_child(player_data)
 
 return system_list

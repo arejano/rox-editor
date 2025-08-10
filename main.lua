@@ -1,29 +1,23 @@
 local UIElement = require("core.ui.element")
 local utils = require("core.utils")
+local LoveProfiler = require("love_profiler")
 
 UI = require("ui_test")
+Profiler = LoveProfiler.new()
 
 function love.load()
-  love.profiler = require("libs.profile.profile")
-  love.profiler.start()
+  Profiler:start()
 
-
-  utils.debug_position()
+  -- utils.debug_position()
 end
 
-love.frame = 0
 function love.update(dt)
-  love.frame = love.frame + 1
-  if love.frame % 60 == 0 then
-    love.report = love.profiler.report(150)
-    love.profiler.reset()
-  end
+  Profiler:update(dt)
 end
 
 function love.draw()
-  love.graphics.print("WoW")
   UI:render()
-  love.graphics.print(love.report or "Please wait...")
+  Profiler:draw()
 end
 
 function love.keypressed(key)
@@ -45,7 +39,7 @@ function love.mousepressed(x, y, button, istouch, presses)
     pressed = true,
     release = false
   }
-  UI:handleMouseClick(mouseData)
+  UI:handle_mouse_click(mouseData)
 end
 
 function love.mousereleased(x, y, button, istouch, presses)
@@ -58,12 +52,12 @@ function love.mousereleased(x, y, button, istouch, presses)
     pressed = false,
     release = true
   }
-  UI:handleMouseClick(mouseData)
+  UI:handle_mouse_click(mouseData)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
   local mouseData = { x = x, y = y, dx = dx, dy = dy, istouch = istouch }
-  UI:mouseMoved(mouseData)
+  UI:mouse_moved(mouseData)
 end
 
 ---@param focus boolean

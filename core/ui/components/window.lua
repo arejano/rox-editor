@@ -1,4 +1,7 @@
 local utils = require("core.utils")
+local ElementController = require("core.ui.element_controller")
+local Events = require("core.ui.events")
+
 local UIElement = require "core.ui.element"
 -- local Resizer = require "editor.ui.components.resizer"
 -- local Row = require "editor.ui.components.row"
@@ -23,6 +26,12 @@ function Window:new(x)
     }
   }
   element:bindData(data)
+  ---@param self UIElement
+  ---@param event Events
+  element.consumeEvent = function(self, event)
+    print("COnsumindo", self)
+    Events.handleEvent(event, self)
+  end
 
 
   local enroll_button = UIElement:new(8, 8, 16, 16)
@@ -53,9 +62,9 @@ function Window:new(x)
 
     self.parent.data.state.minimized = false
     self.parent.data.state.maximized = false
-    self.parent:markDirty()
+    self.parent:mark_dirty()
   end
-  element:addChild(enroll_button)
+  element:add_child(enroll_button)
 
 
 
@@ -80,21 +89,23 @@ function Window:new(x)
   end
   minimize_button.click = function(self, event)
     if not event.pressed then return end
+    ElementController.toggle_minimize(self.parent)
 
-    if not event.pressed then return end
-    if self.parent.data.state.enrolled then
-      self.parent.data.state.enrolled = false
-      self.parent.container_focus:toggleVisibility(true)
-    else
-      self.parent.data.state.enrolled = true
-      self.parent.container_focus:toggleVisibility(false)
-    end
+    -- if not event.pressed then return end
+    -- if self.parent.data.state.enrolled then
+    --   self.parent.data.state.enrolled = false
+    --   self.parent.container_focus:toggleVisibility(true)
+    -- else
+    --   self.parent.data.state.enrolled = true
+    --   self.parent.container_focus:toggleVisibility(false)
+    -- end
 
-    self.parent.rect.height = self.parent.data.state.enrolled and 36 or 600
+    -- self.parent.rect.height = self.parent.data.state.enrolled and 36 or 600
 
-    self:toggleMinimized(self.parent)
+    -- self:toggleMinimized(self.parent)
+    print("Tentando minimizar")
   end
-  element:addChild(minimize_button)
+  element:add_child(minimize_button)
 
 
   local maximize_button = UIElement:new(8, 8, 16, 16)
@@ -117,15 +128,10 @@ function Window:new(x)
   end
   maximize_button.click = function(self, mousedata)
     if not mousedata.pressed then return end
-
-    self.parent.data.state.minimized = false
-    self.parent.data.state.maximized = true
-    self.parent.data.state.enrolled = false
-
-    self:toggleMaximizeWindowSize(self.parent)
-    self.parent:markDirty()
+    ElementController.toggle_maximize(self.parent)
+    -- Events.handleEvent(Events.maximize, self.parent)
   end
-  element:addChild(maximize_button)
+  element:add_child(maximize_button)
 
 
   local close_button = UIElement:new(8, 8, 16, 16)
@@ -143,7 +149,7 @@ function Window:new(x)
     self.parent.data.state.minimized = false
     self.parent.data.state.maximized = false
     self.parent.data.state.enrolled = false
-    self.parent:markDirty()
+    self.parent:mark_dirty()
   end
   close_button.start = function(self)
     self.rect.x = self.parent.rect.width - self.rect.width - 12
@@ -152,7 +158,7 @@ function Window:new(x)
     self.rect.x = self.parent.rect.width - self.rect.width - 12
   end
 
-  element:addChild(close_button)
+  element:add_child(close_button)
 
   element.draw = function(self)
     local x, y = self.rect.x, self.rect.y
@@ -189,7 +195,7 @@ function Window:new(x)
   end
   element.container_focus = container
 
-  element:addChild(container)
+  element:add_child(container)
 
   return element
 end

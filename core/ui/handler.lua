@@ -1,10 +1,9 @@
-local UIElement = require "core.ui.element"
 local utils = require "core.utils"
 
 ---@class UIHandler
 ---@field rootElement UIElement | nil
 ---@field stopped boolean
----@field elementOnMouseFocus UIElement
+---@field elementOnMouseFocus UIElement | nil
 ---@field elementOnDragging UIElement | nil
 ---@field elementOnResizing UIElement | nil
 local UIHandler = {
@@ -37,10 +36,10 @@ function UIHandler:update(dt)
   -- Para childs que
 end
 
-function UIHandler:cancelDragAndResize(relese)
+function UIHandler:cancel_drag_and_resize(relese)
   if relese then
     if self.elementOnResizing then
-      self.elementOnResizing:endResize()
+      self.elementOnResizing:end_resize()
       self.elementOnResizing = nil
     end
 
@@ -51,19 +50,16 @@ function UIHandler:cancelDragAndResize(relese)
   end
 end
 
----------------------------------------------------------Mouse
 ---@param mousedata  MouseClickData
-function UIHandler:handleMouseClick(mousedata)
+function UIHandler:handle_mouse_click(mousedata)
   print(mousedata.pressed and "--pressed" or "--released" .. "-----------------------------")
 
   if self.stopped then return end
 
   local focus = self.elementOnMouseFocus
 
-
-
   -- Cancel Dragging and Resize
-  self:cancelDragAndResize(mousedata.release)
+  self:cancel_drag_and_resize(mousedata.release)
 
   if focus and focus.transpass then
     print("WOW2")
@@ -72,9 +68,9 @@ function UIHandler:handleMouseClick(mousedata)
     end
   end
 
-  if focus.parent and mousedata.pressed then
+  if focus and focus.parent and mousedata.pressed then
     print("WOW3")
-    focus.parent:newFocusOrder(focus.ID)
+    focus.parent:new_focus_order(focus.ID)
   end
 
   -- Resizing
@@ -82,7 +78,7 @@ function UIHandler:handleMouseClick(mousedata)
     print("WOW4")
     if mousedata.pressed then
       print("WOW5")
-      self.elementOnResizing = focus:startResize()
+      self.elementOnResizing = focus:start_resize()
     end
     return
   end
@@ -92,7 +88,7 @@ function UIHandler:handleMouseClick(mousedata)
     print("WOW6")
     if mousedata.pressed then
       print("WOW7")
-      self.elementOnDragging = focus:beginDrag(mousedata.x, mousedata.y)
+      self.elementOnDragging = focus:begin_drag(mousedata.x, mousedata.y)
     end
     return
   end
@@ -104,28 +100,28 @@ function UIHandler:handleMouseClick(mousedata)
   end
 end
 
-function UIHandler:handleMouseMove(x, y)
+function UIHandler:handle_mouse_move(x, y)
   if self.elementOnDragging or self.elementOnResizing then
     return
   end
 
-  local deepestChild = self:getDeepestChildAtPosition(x, y)
+  local deepestChild = self:get_deepest_child_at_position(x, y)
 
   -- Atualiza o foco atual
-  self:updateFocus(deepestChild)
+  self:update_focus(deepestChild)
 
   -- Retorna o elemento com foco (útil para outros eventos)
   return deepestChild
 end
 
-function UIHandler:getDeepestChildAtPosition(x, y)
-  local function findDeepest(element)
+function UIHandler:get_deepest_child_at_position(x, y)
+  local function find_deepest(element)
     if not element.visible or element.alpha <= 0 then
       return nil
     end
 
     -- Posição absoluta
-    local absX, absY = element:getAbsolutePosition()
+    local absX, absY = element:get_absolute_position()
     local ex, ey = tonumber(absX), tonumber(absY)
     local w, h = tonumber(element.rect.width), tonumber(element.rect.height)
 
@@ -144,7 +140,7 @@ function UIHandler:getDeepestChildAtPosition(x, y)
           local child = child_idx and element.childs[child_idx]
 
           if child then
-            local found = findDeepest(child)
+            local found = find_deepest(child)
             if found then
               return found
             end
@@ -153,7 +149,7 @@ function UIHandler:getDeepestChildAtPosition(x, y)
       else
         -- fallback (se não houver render_order)
         for i = #element.childs, 1, -1 do
-          local found = findDeepest(element.childs[i])
+          local found = find_deepest(element.childs[i])
           if found then
             return found
           end
@@ -166,10 +162,10 @@ function UIHandler:getDeepestChildAtPosition(x, y)
     return nil
   end
 
-  return findDeepest(self.rootElement)
+  return find_deepest(self.rootElement)
 end
 
-function UIHandler:updateFocus(newFocus)
+function UIHandler:update_focus(newFocus)
   -- Se o foco não mudou, não faz nada
   if self.elementOnMouseFocus == newFocus then
     return
@@ -177,11 +173,11 @@ function UIHandler:updateFocus(newFocus)
 
   -- Remove o foco do elemento anterior
   if self.elementOnMouseFocus then
-    self.elementOnMouseFocus:focusOut()
+    self.elementOnMouseFocus:focus_out()
     self.elementOnMouseFocus.hasMouseFocus = false
     self.elementOnMouseFocus.isMouseOver = false
-    if self.elementOnMouseFocus.onMouseLeave then
-      self.elementOnMouseFocus:onMouseLeave()
+    if self.elementOnMouseFocus.on_mouse_leave then
+      self.elementOnMouseFocus:on_mouse_leave()
     end
   end
 
@@ -199,18 +195,18 @@ function UIHandler:updateFocus(newFocus)
     end
 
     -- Propaga para cima na hierarquia (opcional)
-    self:propagateMouseOver(newFocus)
-    newFocus:markDirty()
+    -- self:propagate_mouse_over(newFocus)
+    newFocus:mark_dirty()
   end
 end
 
 -- Marca todos os pais como "mouse over" até a raiz
-function UIHandler:propagateMouseOver(element)
-  local parent = element.parent
-  while parent do
-    parent.isMouseOver = true
-    parent = parent.parent
-  end
+function UIHandler:propagate_mouse_over(element)
+  -- local parent = element.parent
+  -- while parent do
+  -- parent.isMouseOver = true
+  -- parent = parent.parent
+  -- end
 end
 
 --------------------------------------------------------- Resize
@@ -232,15 +228,10 @@ function UIHandler:render()
   self.rootElement:render()
 end
 
--- Remove um elemento da raiz
-function UIHandler:removeElement(element)
-  return self.rootElement:removeChild(element)
-end
-
 -- Função para encontrar elemento sob o mouse (útil para eventos)
-function UIHandler:getElementAt(x, y)
+function UIHandler:get_element_at(x, y)
   local function checkElement(element, x, y)
-    local ex, ey = element:getAbsolutePosition()
+    local ex, ey = element:get_absolute_position()
     local w, h = element.rect.width, element.rect.height
 
     if x >= ex and x <= ex + w and y >= ey and y <= ey + h then
@@ -261,8 +252,8 @@ function UIHandler:updateLayout()
   self.rootElement:updateLayout()
 end
 
-function UIHandler:mouseMoved(mousedata)
-  local focus = self:handleMouseMove(mousedata.x, mousedata.y)
+function UIHandler:mouse_moved(mousedata)
+  local focus = self:handle_mouse_move(mousedata.x, mousedata.y)
   local dragging = self.elementOnDragging
   local resizing = self.elementOnResizing
 
@@ -271,55 +262,22 @@ function UIHandler:mouseMoved(mousedata)
     if dragging.drag_taget then
       -- dragging.drag_taget:dragTo(mx, my)
     else
-      dragging:dragTo(mx, my)
+      dragging:drag_to(mx, my)
     end
     return
   end
 
-  if resizing then
-    if resizing.resizer_target then
-      resizing:resizeTarget()
-    else
-      print("Nao existe elemento para redimennsionar")
-    end
-    return
-  end
+  -- if resizing then
+  --   if resizing.resizer_target then
+  --     resizing:resizeTarget()
+  --   else
+  --     print("Nao existe elemento para redimennsionar")
+  --   end
+  --   return
+  -- end
 
   if self.elementOnMouseFocus then
-    self.elementOnMouseFocus:handleMouseMove();
-  end
-end
-
--- function UIHandler:getFocusedElement()
---   local x, y = love.mouse.getPosition()
---   local focusedElement = self:handleMouseMove(x, y)
---   -- Você pode adicionar lógica adicional aqui
---   if focusedElement then
---     local cursor = self:cursorByState(focusedElement)
---     if cursor then
---       love.mouse.setCursor(love.mouse.getSystemCursor(cursor))
---     else
---       love.mouse.setCursor()
---     end
---   end
---   return focusedElement
--- end
-
----@param element UiElement
-function UIHandler:cursorByState(element)
-  if self.elementOnResizing then
-    return 'sizenwse'
-  end
-
-
-  if self.elementOnDragging or element.dragging then
-    return 'hand'
-  end
-
-  if element.clickable then
-    return 'hand'
-  else
-    return nil
+    self.elementOnMouseFocus:handle_mouse_move();
   end
 end
 

@@ -3,7 +3,7 @@ local utils = require "core.utils"
 ---@class UIElement
 local UIElement = {
   absolutePosition = { x = 0, y = 0 },
-  lastRenderTime = 0,
+  absoluteDirty = true, -- Novo flag de cache  lastRenderTime = 0,
   last_float_position = { x = 0, y = 0, width = 0, height = 0 },
   maximized = false,
   minimized = false,
@@ -65,23 +65,23 @@ function UIElement:new(x, y, width, height)
 end
 
 function UIElement:start()
-  local x, y = self:getAbsolutePosition();
+  local x, y = self:get_absolute_position();
   self.absolutePosition.x = x
   self.absolutePosition.y = y
 end
 
 -- Método para obter posição absoluta (considerando hierarquia)
-function UIElement:getAbsolutePosition()
+function UIElement:get_absolute_position()
   if not self.parent then
     return self.rect.x, self.rect.y
   end
-  local parentX, parentY = self.parent:getAbsolutePosition()
+  local parentX, parentY = self.parent:get_absolute_position()
   -- local parentX, parentY = self.parent.absolutePosition.x, self.parent.absolutePosition.y
   return parentX + self.rect.x, parentY + self.rect.y
 end
 
 -- Marca este elemento e todos os pais como necessitando renderização
-function UIElement:markDirty()
+function UIElement:mark_dirty()
   self.dirty = true
 
   -- Propaga para os pais (para casos de clipping/overlap)
@@ -90,7 +90,7 @@ function UIElement:markDirty()
   -- end
 
   for _, c in ipairs(self.childs) do
-    c:markDirty()
+    c:mark_dirty()
   end
 end
 
@@ -100,7 +100,7 @@ end
 
 function UIElement:draw()
   if self.texture then
-    self:drawTexture()
+    self:draw_texture()
     return
   end
 
@@ -108,7 +108,7 @@ function UIElement:draw()
   love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
 end
 
-function UIElement:drawTexture()
+function UIElement:draw_texture()
   love.graphics.draw(self.texture, 0, 0, 0, 1, 1, 0, 0)
 end
 
@@ -116,7 +116,7 @@ end
 function UIElement:update(_)
 end
 
-function UIElement:addChild(child)
+function UIElement:add_child(child)
   table.insert(self.childs, child)
   child.parent = self
 
@@ -127,30 +127,17 @@ function UIElement:addChild(child)
     child:start()
   end
 
-  self:markDirty() -- A interface mudou
+  self:mark_dirty() -- A interface mudou
   return child
 end
 
-function UIElement:bringToFront()
+function UIElement:bring_to_front()
   if self.parent then
     self.parent.to_front = self
   end
 end
 
--- Remove um child
-function UIElement:removeChild(child)
-  for i, c in ipairs(self.childs) do
-    if c == child then
-      table.remove(self.childs, i)
-      child.parent = nil
-      self:markDirty()
-      return true
-    end
-  end
-  return false
-end
-
-function UIElement:isTimeToRender()
+function UIElement:is_time_to_render()
   -- local now = love.timer.getTime()
   -- if now - self.lastRenderTime < (1 / self.target_fps) then
   --   return -- Não renderiza se ainda não atingiu o intervalo
@@ -162,7 +149,7 @@ end
 function UIElement:render()
   if not self.visible or self.alpha <= 0 then return end
 
-  if not self:isTimeToRender() then return end
+  -- if not self:is_time_to_render() then return end
 
   -- 1. Renderiza no canvas se dirty
   if self.dirty then
@@ -183,8 +170,8 @@ function UIElement:render()
 
   -- local x, y = self:getAbsolutePosition()
 
-  local x, y = self:getAbsolutePosition()
-  print("Debug2: " .. self.name)
+  local x, y = self:get_absolute_position()
+  -- print("Debug2: " .. self.name)
   -- love.graphics.setColor(1, 1, 1, self.alpha) -- Aplica alpha novamente
   love.graphics.draw(self.canvas, x, y)
   -- love.graphics.setColor(1, 1, 1, 1)          -- Reseta para branco sólido
@@ -248,20 +235,8 @@ function UIElement:updateRect(rect)
   -- TODO: Isso precisa ser reavalido
   -- Marca os pais como dirty para garantir que a hierarquia seja atualizada
   if self.parent then
-    self.parent:markDirty()
+    self.parent:mark_dirty()
   end
-end
-
----@param w number
----@param h number
-function UIElement:updateSize(w, h)
-  -- local invalid = utils.isInvalidResize(w, h, self.minHeight, self.minHeight)
-  -- if not invalid then return end
-
-  self.rect.width = w
-  -- self.rect.height = h
-
-  -- self:propagateResize()
 end
 
 ---@param x number
@@ -269,7 +244,7 @@ end
 function UIElement:updatePosition(x, y)
   self.rect.x = x
   self.rect.y = y
-  self:markDirty()
+  self:mark_dirty()
 end
 
 function UIElement:bindData(data)
@@ -282,13 +257,13 @@ function UIElement:click(mousedata)
   print(utils.inspect(mousedata))
 end
 
-function UIElement:handleMouseMove()
+function UIElement:handle_mouse_move()
 end
 
-function UIElement:dragTo(mx, my)
+function UIElement:drag_to(mx, my)
   if self.dragOffsetX and self.dragOffsetY and self.parent then
     -- Posição absoluta do pai
-    local pAbsX, pAbsY = self.parent:getAbsolutePosition()
+    local pAbsX, pAbsY = self.parent:get_absolute_position()
     print("Debug3")
 
     -- Offset do mouse relativo ao pai
@@ -296,32 +271,32 @@ function UIElement:dragTo(mx, my)
     local localY = my - pAbsY - self.dragOffsetY
 
     -- Limitar aos limites do pai (com clamp)
-    local newX, newY = self:clampToParent(localX, localY)
+    local newX, newY = self:clamp_to_parent(localX, localY)
     self:updatePosition(newX, newY)
   end
 end
 
 ---@return UIElement
-function UIElement:beginDrag(mouseX, mouseY)
+function UIElement:begin_drag(mouseX, mouseY)
   local target = self.drag_taget and self.drag_taget or self
 
-  local ax, ay = target:getAbsolutePosition()
+  local ax, ay = target:get_absolute_position()
   print("Debug4")
   target.dragOffsetX = mouseX - ax
   target.dragOffsetY = mouseY - ay
   target.dragging = true
-  target:markDirty()
+  target:mark_dirty()
   return self
 end
 
 function UIElement:endDrag(automatic)
   local target = self.drag_taget and self.drag_taget or self
   target.dragging = false
-  target:markDirty()
+  target:mark_dirty()
 end
 
 function UIElement:isMouseInsideInnerBounds(mx, my)
-  local ax, ay = self:getAbsolutePosition()
+  local ax, ay = self:get_absolute_position()
   print("Debug5")
   local x1 = ax + 5
   local y1 = ay + 5
@@ -331,7 +306,7 @@ function UIElement:isMouseInsideInnerBounds(mx, my)
   return mx > x1 and mx < x2 and my > y1 and my < y2
 end
 
-function UIElement:focusOut()
+function UIElement:focus_out()
   if self.dragging then
     self:endDrag()
   end
@@ -367,7 +342,7 @@ function UIElement:watch_resize()
 end
 
 ---@return UIElement
-function UIElement:startResize()
+function UIElement:start_resize()
   local px, py = love.mouse.getPosition()
   self.resizing = true
   self.resizeStartMouseX = px
@@ -377,19 +352,18 @@ function UIElement:startResize()
   return self
 end
 
-function UIElement:endResize()
+function UIElement:end_resize()
   self.resizing = false
 end
 
-function UIElement:onMouseEnter()
+function UIElement:on_mouse_enter()
 end
 
-function UIElement:onMouseLeave()
+function UIElement:on_mouse_leave()
 end
 
-function UIElement:handleEvent(event)
-  print("default handleEvent")
-  print(inspect(event))
+function UIElement:handle_event(event)
+  -- print("default handleEvent")
 end
 
 function UIElement:debug_box()
@@ -429,8 +403,8 @@ function UIElement:isValidMove(x, y)
   return dentroHorizontal and dentroVertical
 end
 
-function UIElement:clampToParent(x, y)
-  local px, py = self.parent:getAbsolutePosition()
+function UIElement:clamp_to_parent(x, y)
+  local px, py = self.parent:get_absolute_position()
   print("Debug6")
   local pw, ph = self.parent.rect.width, self.parent.rect.height
 
@@ -440,12 +414,7 @@ function UIElement:clampToParent(x, y)
   return newX, newY
 end
 
---- Utils
-function UIElement:getChildIds()
-  return self.render_order
-end
-
-function UIElement:newFocusOrder(child_id)
+function UIElement:new_focus_order(child_id)
   for i, v in ipairs(self.render_order) do
     if v == child_id then
       table.remove(self.render_order, i)
@@ -455,89 +424,8 @@ function UIElement:newFocusOrder(child_id)
   end
 end
 
-function UIElement:horizontal_resize_childs()
-  local parent = self.parent
-  if not parent then return end
-
-  local padding = parent.style.padding or 0
-  local innerWidth = parent.rect.width - (self.parent.style.padding * 2)
-  self.rect.width = innerWidth
-
-  local childCount = #self.childs
-  if childCount == 0 then return end
-
-  local splitSize = innerWidth / childCount
-  local innerHeight = self.rect.height - (self.style.padding * 2)
-
-  for i, child in ipairs(self.childs) do
-    local offset = (splitSize * (i - 1)) + self.style.padding
-    child.rect.x = offset
-    child.rect.y = self.style.padding
-    child:updateSize(splitSize - (self.style.padding * 2), innerHeight)
-  end
-end
-
-function UIElement:vertical_resize_childs()
-  print(#self.parent.childs)
-end
-
-function UIElement:consumeEvent(event)
-  print("UIElement:consumeEvent" .. utils.inspect(event))
-end
-
-function UIElement:toggleMaximizeWindowSize(target)
-  ---@type UIElement
-  local self = target or self
-  local ww, wh = utils.GetWindowSize()
-  if self.maximized then
-    self.maximized = false
-    self:dragTo(100, 100)
-    self:setMinimalSize()
-
-    self:restoreLastPosition()
-  else
-    self.maximized = true
-    self:savePosition()
-    self:dragTo(0, 0)
-    self:resize(ww, wh)
-  end
-end
-
-function UIElement:savePosition()
-  local rect = {
-    x = self.rect.x,
-    y = self.rect.y,
-    width = self.rect.width,
-    height = self.rect.height,
-  }
-  self.last_float_position = rect
-end
-
-function UIElement:restoreLastPosition()
-  self.rect.x = self.last_float_position.x
-  self.rect.y = self.last_float_position.y
-  self:resize(self.last_float_position.width, self.last_float_position.height)
-end
-
-function UIElement:toggleMinimized(target)
-  local self = target or self
-  local ww, wh = utils.GetWindowSize()
-  print(ww, wh)
-  if not self.minimized then
-    print(1)
-    -- Minimizar
-    self:savePosition()
-    self.minimized = true
-    self.rect.x = 10
-    self.rect.y = wh - 42
-    self:resize(100, 100)
-  else
-    print(1)
-    -- Restaurar
-    self.minimized = false
-    -- self:restoreLastFloatPosition()
-  end
-  self:markDirty()
+---@param event Events
+function UIElement:consumeEvent(event, event_data)
 end
 
 function UIElement:toggleVisibility(v)

@@ -13,7 +13,7 @@ Editor.__index = Editor
 
 function Editor:new()
   local obj = setmetatable({}, Editor)
-  obj.ui_handler = require 'editor.ui.editor_ui'
+  -- obj.ui_handler = require 'editor.ui.editor_ui'
   return obj;
 end
 
@@ -27,7 +27,7 @@ function Editor:mousePressed(x, y, button, istouch, presses)
     pressed = true,
     release = false
   }
-  self.ui_handler:handleMouseClick(mouseData)
+  self.ui_handler:handle_mouse_click(mouseData)
 end
 
 function Editor:mouseReleased(x, y, button, istouch, presses)
@@ -40,11 +40,11 @@ function Editor:mouseReleased(x, y, button, istouch, presses)
     pressed = false,
     release = true
   }
-  self.ui_handler:handleMouseClick(mouseData)
+  self.ui_handler:handle_mouse_click(mouseData)
 end
 
 function Editor:mouseMoved(mousedata)
-  self.ui_handler:mouseMoved(mousedata)
+  self.ui_handler:mouse_moved(mousedata)
 end
 
 function Editor:draw()

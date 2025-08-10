@@ -17,12 +17,12 @@
 ---@class UIElement
 ---@field ID string
 ---@field childs UIElement[]
----@field markDirty function
+---@field mark_dirty function
 ---@field resize function
----@field startResize function
----@field endResize function
----@field onMouseLeave function
----@field handleEvent function
+---@field start_resize function
+---@field end_resize function
+---@field on_mouse_leave function
+---@field handle_event function
 ---@field onDragEnd function
 ---@field consumeEvent function
 ---@field parent UIElement | nil

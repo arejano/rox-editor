@@ -53,10 +53,10 @@ clean_button.start = function(self)
 end
 
 
-element:addChild(background)
-element:addChild(close_button)
-element:addChild(bag_buttons)
-element:addChild(clean_button)
-element:addChild(portrait)
+element:add_child(background)
+element:add_child(close_button)
+element:add_child(bag_buttons)
+element:add_child(clean_button)
+element:add_child(portrait)
 
 return element

@@ -21,8 +21,8 @@ end
 local window = Window:new()
 local window_2 = Window:new()
 
-editor_ui.rootElement:addChild(window)
--- editor_ui.rootElement:addChild(window_2)
+editor_ui.rootElement:add_child(window)
+editor_ui.rootElement:add_child(window_2)
 editor_ui.rootElement.canvas = nil
 
 return editor_ui

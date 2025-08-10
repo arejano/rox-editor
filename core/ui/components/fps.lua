@@ -20,11 +20,11 @@ end
 text.consumeEvent = function(self, event)
   self.data.label          = event.data
   self.data.update_counter = self.data.update_counter + 1
-  self:markDirty()
+  self:mark_dirty()
 end
 
 
 EventManager:watch("update_fps", text)
-element:addChild(text)
+element:add_child(text)
 
 return element

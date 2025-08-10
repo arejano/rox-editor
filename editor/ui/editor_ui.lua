@@ -11,30 +11,31 @@ editor_ui.rootElement = UIElement:new(0, 0, love.graphics.getWidth(), love.graph
 editor_ui.rootElement.name = "RootElement"
 editor_ui.rootElement.noPropagate = true
 
-editor_ui.rootElement.draw = function(self)
-  if self then
-    love.graphics.setColor(love.math.colorFromBytes(0, 0, 0, 0))
-    love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
-  end
-end
+-- editor_ui.rootElement.draw = function(self)
+--   if self then
+--     love.graphics.setColor(love.math.colorFromBytes(0, 0, 0, 0))
+--     love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+--   end
+-- end
 
 
 
-local player_inspect = UIElement:new(0, 0, 500, editor_ui.rootElement.rect.height)
-player_inspect.name = "PlayerInspect"
-local data = {
-  counter = 0,
-  player_data = {}
-}
-player_inspect:bindData(data)
-player_inspect.dragable = true
-player_inspect.draw = function(self)
-  love.graphics.setColor(love.math.colorFromBytes(0, 92, 75))
-  love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+-- local player_inspect = UIElement:new(0, 0, 500, editor_ui.rootElement.rect.height)
+-- player_inspect.name = "PlayerInspect"
+-- local data = {
+--   counter = 0,
+--   player_data = {}
+-- }
+-- player_inspect:bindData(data)
+-- player_inspect.dragable = true
 
-  love.graphics.setColor(1, 1, 1)
-  love.graphics.print(utils.inspect(self.data), 20, 20)
-end
+-- player_inspect.draw = function(self)
+--   love.graphics.setColor(love.math.colorFromBytes(0, 92, 75))
+--   love.graphics.rectangle("fill", 0, 0, self.rect.width, self.rect.height)
+
+--   love.graphics.setColor(1, 1, 1)
+--   love.graphics.print(utils.inspect(self.data), 20, 20)
+-- end
 
 -- player_inspect.consumeEvent = function(self, event)
 --   for k, v in pairs(event) do
@@ -43,24 +44,24 @@ end
 --   self:markDirty()
 -- end
 
-player_inspect.start = function(self)
-  local new_x = self.parent.rect.width - self.rect.width
-  self.rect.x = new_x
-  self.rect.height = self.parent.rect.height
-end
+-- player_inspect.start = function(self)
+--   local new_x = self.parent.rect.width - self.rect.width
+--   self.rect.x = new_x
+--   self.rect.height = self.parent.rect.height
+-- end
 
 
-player_inspect.watch_resize = function(self)
-  self.rect.height = self.parent.rect.height
-  local new_x = self.parent.rect.width - self.rect.width
-  self.rect.x = new_x
-end
+-- player_inspect.watch_resize = function(self)
+--   self.rect.height = self.parent.rect.height
+--   local new_x = self.parent.rect.width - self.rect.width
+--   self.rect.x = new_x
+-- end
 
 
 local system_list = require("editor.ui.system_list")
 system_list.name = "SystemList"
 
-editor_ui.rootElement:addChild(system_list)
+editor_ui.rootElement:add_child(system_list)
 
 editor_ui.rootElement.canvas = nil
 

@@ -2,6 +2,7 @@ local utils = {}
 
 utils.inspect = require "libs.inspect"
 
+---@return number,number
 function utils.GetWindowSize()
   return love.graphics.getWidth(), love.graphics.getHeight()
 end
