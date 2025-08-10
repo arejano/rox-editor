@@ -1,8 +1,8 @@
 local UIHandler = require "core.ui.handler"
 local UIElement = require "core.ui.element"
-local utils     = require("core.utils")
+-- local utils     = require("core.utils")
 local Window    = require("core.ui.components.window")
-
+local BottomBar = require("core.ui.components.bottom_bar")
 
 
 local editor_ui = UIHandler:new();
@@ -18,11 +18,14 @@ editor_ui.rootElement.draw = function(self)
   end
 end
 
+local bottom_bar = BottomBar.new()
+
 local window = Window:new()
 local window_2 = Window:new()
 
 editor_ui.rootElement:add_child(window)
 editor_ui.rootElement:add_child(window_2)
+editor_ui.rootElement:add_child(bottom_bar)
 editor_ui.rootElement.canvas = nil
 
 return editor_ui

@@ -17,7 +17,7 @@ end
 
 function love.draw()
   UI:render()
-  Profiler:draw()
+  -- Profiler:draw()
 end
 
 function love.keypressed(key)
